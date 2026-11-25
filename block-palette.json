@@ -1,0 +1,1529 @@
+{
+  "version": "1.1",
+  "source": "Vintage Story 1.22+ assets (survival + creative)",
+  "blocks": [
+    {
+      "name": "Andesite",
+      "code": "brick-andesite",
+      "color": "#666e74",
+      "category": "Bricks",
+      "texture": "stone/brick/andesite1.png"
+    },
+    {
+      "name": "Basalt",
+      "code": "brick-basalt",
+      "color": "#2e2e2e",
+      "category": "Bricks",
+      "texture": "stone/brick/basalt1.png"
+    },
+    {
+      "name": "Bauxite",
+      "code": "brick-bauxite",
+      "color": "#a25c30",
+      "category": "Bricks",
+      "texture": "stone/brick/bauxite1.png"
+    },
+    {
+      "name": "Chalk",
+      "code": "brick-chalk",
+      "color": "#a6a5a0",
+      "category": "Bricks",
+      "texture": "stone/brick/chalk1.png"
+    },
+    {
+      "name": "Chert",
+      "code": "brick-chert",
+      "color": "#624939",
+      "category": "Bricks",
+      "texture": "stone/brick/chert1.png"
+    },
+    {
+      "name": "Claystone",
+      "code": "brick-claystone",
+      "color": "#846c4d",
+      "category": "Bricks",
+      "texture": "stone/brick/claystone1.png"
+    },
+    {
+      "name": "Conglomerate",
+      "code": "brick-conglomerate",
+      "color": "#766b54",
+      "category": "Bricks",
+      "texture": "stone/brick/conglomerate1.png"
+    },
+    {
+      "name": "Granite",
+      "code": "brick-granite",
+      "color": "#807b70",
+      "category": "Bricks",
+      "texture": "stone/brick/granite1.png"
+    },
+    {
+      "name": "Limestone",
+      "code": "brick-limestone",
+      "color": "#9f9781",
+      "category": "Bricks",
+      "texture": "stone/brick/limestone1.png"
+    },
+    {
+      "name": "Peridotite",
+      "code": "brick-peridotite",
+      "color": "#646143",
+      "category": "Bricks",
+      "texture": "stone/brick/peridotite1.png"
+    },
+    {
+      "name": "Phyllite",
+      "code": "brick-phyllite",
+      "color": "#716866",
+      "category": "Bricks",
+      "texture": "stone/brick/phyllite1.png"
+    },
+    {
+      "name": "Sandstone",
+      "code": "brick-sandstone",
+      "color": "#ab8b5d",
+      "category": "Bricks",
+      "texture": "stone/brick/sandstone1.png"
+    },
+    {
+      "name": "Shale",
+      "code": "brick-shale",
+      "color": "#454544",
+      "category": "Bricks",
+      "texture": "stone/brick/shale1.png"
+    },
+    {
+      "name": "Slate",
+      "code": "brick-slate",
+      "color": "#3d332e",
+      "category": "Bricks",
+      "texture": "stone/brick/slate1.png"
+    },
+    {
+      "name": "Suevite",
+      "code": "brick-suevite",
+      "color": "#4f524d",
+      "category": "Bricks",
+      "texture": "stone/brick/suevite1.png"
+    },
+    {
+      "name": "Travertine",
+      "code": "brick-travertine",
+      "color": "#bea98a",
+      "category": "Bricks",
+      "texture": "stone/brick/travertine1.png"
+    },
+    {
+      "name": "Andesite",
+      "code": "cobblestone-andesite",
+      "color": "#687177",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/andesite1.png"
+    },
+    {
+      "name": "Basalt",
+      "code": "cobblestone-basalt",
+      "color": "#393939",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/basalt1.png"
+    },
+    {
+      "name": "Bauxite",
+      "code": "cobblestone-bauxite",
+      "color": "#aa5929",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/bauxite1.png"
+    },
+    {
+      "name": "Chalk",
+      "code": "cobblestone-chalk",
+      "color": "#9f9e97",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/chalk1.png"
+    },
+    {
+      "name": "Chert",
+      "code": "cobblestone-chert",
+      "color": "#624633",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/chert1.png"
+    },
+    {
+      "name": "Claystone",
+      "code": "cobblestone-claystone",
+      "color": "#826644",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/claystone1.png"
+    },
+    {
+      "name": "Conglomerate",
+      "code": "cobblestone-conglomerate",
+      "color": "#776a50",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/conglomerate1.png"
+    },
+    {
+      "name": "Granite",
+      "code": "cobblestone-granite",
+      "color": "#726c60",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/granite1.png"
+    },
+    {
+      "name": "Greenmarble",
+      "code": "cobblestone-greenmarble",
+      "color": "#8e8f7f",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/greenmarble1.png"
+    },
+    {
+      "name": "Halite",
+      "code": "cobblestone-halite",
+      "color": "#b59f95",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/halite1.png"
+    },
+    {
+      "name": "Kimberlite",
+      "code": "cobblestone-kimberlite",
+      "color": "#5c6963",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/kimberlite1.png"
+    },
+    {
+      "name": "Limestone",
+      "code": "cobblestone-limestone",
+      "color": "#928669",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/limestone1.png"
+    },
+    {
+      "name": "Obsidian",
+      "code": "cobblestone-obsidian",
+      "color": "#16111d",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/obsidian1.png"
+    },
+    {
+      "name": "Peridotite",
+      "code": "cobblestone-peridotite",
+      "color": "#5f5b3a",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/peridotite1.png"
+    },
+    {
+      "name": "Phyllite",
+      "code": "cobblestone-phyllite",
+      "color": "#736966",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/phyllite1.png"
+    },
+    {
+      "name": "Redmarble",
+      "code": "cobblestone-redmarble",
+      "color": "#a68e75",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/redmarble1.png"
+    },
+    {
+      "name": "Sandstone",
+      "code": "cobblestone-sandstone",
+      "color": "#b8905b",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/sandstone1.png"
+    },
+    {
+      "name": "Scoria",
+      "code": "cobblestone-scoria",
+      "color": "#564d4b",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/scoria1.png"
+    },
+    {
+      "name": "Shale",
+      "code": "cobblestone-shale",
+      "color": "#4d4c4c",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/shale1.png"
+    },
+    {
+      "name": "Slate",
+      "code": "cobblestone-slate",
+      "color": "#413630",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/slate1.png"
+    },
+    {
+      "name": "Suevite",
+      "code": "cobblestone-suevite",
+      "color": "#6c6c64",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/suevite1.png"
+    },
+    {
+      "name": "Tuff",
+      "code": "cobblestone-tuff",
+      "color": "#482e18",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/tuff1.png"
+    },
+    {
+      "name": "Whitemarble",
+      "code": "cobblestone-whitemarble",
+      "color": "#8a8e8e",
+      "category": "Cobblestone",
+      "texture": "stone/cobblestone/whitemarble1.png"
+    },
+    {
+      "name": "Creative Color 0",
+      "code": "creative-col0",
+      "color": "#883838",
+      "category": "Creative Colors",
+      "texture": "creative/col0.png"
+    },
+    {
+      "name": "Creative Color 1",
+      "code": "creative-col1",
+      "color": "#884638",
+      "category": "Creative Colors",
+      "texture": "creative/col1.png"
+    },
+    {
+      "name": "Creative Color 10",
+      "code": "creative-col10",
+      "color": "#428838",
+      "category": "Creative Colors",
+      "texture": "creative/col10.png"
+    },
+    {
+      "name": "Creative Color 11",
+      "code": "creative-col11",
+      "color": "#38883c",
+      "category": "Creative Colors",
+      "texture": "creative/col11.png"
+    },
+    {
+      "name": "Creative Color 12",
+      "code": "creative-col12",
+      "color": "#38884c",
+      "category": "Creative Colors",
+      "texture": "creative/col12.png"
+    },
+    {
+      "name": "Creative Color 13",
+      "code": "creative-col13",
+      "color": "#38885a",
+      "category": "Creative Colors",
+      "texture": "creative/col13.png"
+    },
+    {
+      "name": "Creative Color 14",
+      "code": "creative-col14",
+      "color": "#38886a",
+      "category": "Creative Colors",
+      "texture": "creative/col14.png"
+    },
+    {
+      "name": "Creative Color 15",
+      "code": "creative-col15",
+      "color": "#388878",
+      "category": "Creative Colors",
+      "texture": "creative/col15.png"
+    },
+    {
+      "name": "Creative Color 16",
+      "code": "creative-col16",
+      "color": "#388888",
+      "category": "Creative Colors",
+      "texture": "creative/col16.png"
+    },
+    {
+      "name": "Creative Color 17",
+      "code": "creative-col17",
+      "color": "#387888",
+      "category": "Creative Colors",
+      "texture": "creative/col17.png"
+    },
+    {
+      "name": "Creative Color 18",
+      "code": "creative-col18",
+      "color": "#386a88",
+      "category": "Creative Colors",
+      "texture": "creative/col18.png"
+    },
+    {
+      "name": "Creative Color 19",
+      "code": "creative-col19",
+      "color": "#385a88",
+      "category": "Creative Colors",
+      "texture": "creative/col19.png"
+    },
+    {
+      "name": "Creative Color 2",
+      "code": "creative-col2",
+      "color": "#885638",
+      "category": "Creative Colors",
+      "texture": "creative/col2.png"
+    },
+    {
+      "name": "Creative Color 20",
+      "code": "creative-col20",
+      "color": "#384c88",
+      "category": "Creative Colors",
+      "texture": "creative/col20.png"
+    },
+    {
+      "name": "Creative Color 21",
+      "code": "creative-col21",
+      "color": "#383c88",
+      "category": "Creative Colors",
+      "texture": "creative/col21.png"
+    },
+    {
+      "name": "Creative Color 22",
+      "code": "creative-col22",
+      "color": "#423888",
+      "category": "Creative Colors",
+      "texture": "creative/col22.png"
+    },
+    {
+      "name": "Creative Color 23",
+      "code": "creative-col23",
+      "color": "#503888",
+      "category": "Creative Colors",
+      "texture": "creative/col23.png"
+    },
+    {
+      "name": "Creative Color 24",
+      "code": "creative-col24",
+      "color": "#603888",
+      "category": "Creative Colors",
+      "texture": "creative/col24.png"
+    },
+    {
+      "name": "Creative Color 25",
+      "code": "creative-col25",
+      "color": "#6e3888",
+      "category": "Creative Colors",
+      "texture": "creative/col25.png"
+    },
+    {
+      "name": "Creative Color 26",
+      "code": "creative-col26",
+      "color": "#7e3888",
+      "category": "Creative Colors",
+      "texture": "creative/col26.png"
+    },
+    {
+      "name": "Creative Color 27",
+      "code": "creative-col27",
+      "color": "#883882",
+      "category": "Creative Colors",
+      "texture": "creative/col27.png"
+    },
+    {
+      "name": "Creative Color 28",
+      "code": "creative-col28",
+      "color": "#883874",
+      "category": "Creative Colors",
+      "texture": "creative/col28.png"
+    },
+    {
+      "name": "Creative Color 29",
+      "code": "creative-col29",
+      "color": "#883864",
+      "category": "Creative Colors",
+      "texture": "creative/col29.png"
+    },
+    {
+      "name": "Creative Color 3",
+      "code": "creative-col3",
+      "color": "#886438",
+      "category": "Creative Colors",
+      "texture": "creative/col3.png"
+    },
+    {
+      "name": "Creative Color 30",
+      "code": "creative-col30",
+      "color": "#883856",
+      "category": "Creative Colors",
+      "texture": "creative/col30.png"
+    },
+    {
+      "name": "Creative Color 31",
+      "code": "creative-col31",
+      "color": "#883846",
+      "category": "Creative Colors",
+      "texture": "creative/col31.png"
+    },
+    {
+      "name": "Creative Color 32",
+      "code": "creative-col32",
+      "color": "#b52626",
+      "category": "Creative Colors",
+      "texture": "creative/col32.png"
+    },
+    {
+      "name": "Creative Color 33",
+      "code": "creative-col33",
+      "color": "#b54226",
+      "category": "Creative Colors",
+      "texture": "creative/col33.png"
+    },
+    {
+      "name": "Creative Color 34",
+      "code": "creative-col34",
+      "color": "#b55c26",
+      "category": "Creative Colors",
+      "texture": "creative/col34.png"
+    },
+    {
+      "name": "Creative Color 35",
+      "code": "creative-col35",
+      "color": "#b57726",
+      "category": "Creative Colors",
+      "texture": "creative/col35.png"
+    },
+    {
+      "name": "Creative Color 36",
+      "code": "creative-col36",
+      "color": "#b59126",
+      "category": "Creative Colors",
+      "texture": "creative/col36.png"
+    },
+    {
+      "name": "Creative Color 37",
+      "code": "creative-col37",
+      "color": "#b5ac26",
+      "category": "Creative Colors",
+      "texture": "creative/col37.png"
+    },
+    {
+      "name": "Creative Color 38",
+      "code": "creative-col38",
+      "color": "#a3b526",
+      "category": "Creative Colors",
+      "texture": "creative/col38.png"
+    },
+    {
+      "name": "Creative Color 39",
+      "code": "creative-col39",
+      "color": "#89b526",
+      "category": "Creative Colors",
+      "texture": "creative/col39.png"
+    },
+    {
+      "name": "Creative Color 4",
+      "code": "creative-col4",
+      "color": "#887438",
+      "category": "Creative Colors",
+      "texture": "creative/col4.png"
+    },
+    {
+      "name": "Creative Color 40",
+      "code": "creative-col40",
+      "color": "#6db526",
+      "category": "Creative Colors",
+      "texture": "creative/col40.png"
+    },
+    {
+      "name": "Creative Color 41",
+      "code": "creative-col41",
+      "color": "#53b526",
+      "category": "Creative Colors",
+      "texture": "creative/col41.png"
+    },
+    {
+      "name": "Creative Color 42",
+      "code": "creative-col42",
+      "color": "#39b526",
+      "category": "Creative Colors",
+      "texture": "creative/col42.png"
+    },
+    {
+      "name": "Creative Color 43",
+      "code": "creative-col43",
+      "color": "#26b52f",
+      "category": "Creative Colors",
+      "texture": "creative/col43.png"
+    },
+    {
+      "name": "Creative Color 44",
+      "code": "creative-col44",
+      "color": "#26b54a",
+      "category": "Creative Colors",
+      "texture": "creative/col44.png"
+    },
+    {
+      "name": "Creative Color 45",
+      "code": "creative-col45",
+      "color": "#26b565",
+      "category": "Creative Colors",
+      "texture": "creative/col45.png"
+    },
+    {
+      "name": "Creative Color 46",
+      "code": "creative-col46",
+      "color": "#26b580",
+      "category": "Creative Colors",
+      "texture": "creative/col46.png"
+    },
+    {
+      "name": "Creative Color 47",
+      "code": "creative-col47",
+      "color": "#26b59a",
+      "category": "Creative Colors",
+      "texture": "creative/col47.png"
+    },
+    {
+      "name": "Creative Color 48",
+      "code": "creative-col48",
+      "color": "#26b5b5",
+      "category": "Creative Colors",
+      "texture": "creative/col48.png"
+    },
+    {
+      "name": "Creative Color 49",
+      "code": "creative-col49",
+      "color": "#269ab5",
+      "category": "Creative Colors",
+      "texture": "creative/col49.png"
+    },
+    {
+      "name": "Creative Color 5",
+      "code": "creative-col5",
+      "color": "#888238",
+      "category": "Creative Colors",
+      "texture": "creative/col5.png"
+    },
+    {
+      "name": "Creative Color 50",
+      "code": "creative-col50",
+      "color": "#2680b5",
+      "category": "Creative Colors",
+      "texture": "creative/col50.png"
+    },
+    {
+      "name": "Creative Color 51",
+      "code": "creative-col51",
+      "color": "#2665b5",
+      "category": "Creative Colors",
+      "texture": "creative/col51.png"
+    },
+    {
+      "name": "Creative Color 52",
+      "code": "creative-col52",
+      "color": "#264ab5",
+      "category": "Creative Colors",
+      "texture": "creative/col52.png"
+    },
+    {
+      "name": "Creative Color 53",
+      "code": "creative-col53",
+      "color": "#262fb5",
+      "category": "Creative Colors",
+      "texture": "creative/col53.png"
+    },
+    {
+      "name": "Creative Color 54",
+      "code": "creative-col54",
+      "color": "#3926b5",
+      "category": "Creative Colors",
+      "texture": "creative/col54.png"
+    },
+    {
+      "name": "Creative Color 55",
+      "code": "creative-col55",
+      "color": "#5326b5",
+      "category": "Creative Colors",
+      "texture": "creative/col55.png"
+    },
+    {
+      "name": "Creative Color 56",
+      "code": "creative-col56",
+      "color": "#6d26b5",
+      "category": "Creative Colors",
+      "texture": "creative/col56.png"
+    },
+    {
+      "name": "Creative Color 57",
+      "code": "creative-col57",
+      "color": "#8926b5",
+      "category": "Creative Colors",
+      "texture": "creative/col57.png"
+    },
+    {
+      "name": "Creative Color 58",
+      "code": "creative-col58",
+      "color": "#a326b5",
+      "category": "Creative Colors",
+      "texture": "creative/col58.png"
+    },
+    {
+      "name": "Creative Color 59",
+      "code": "creative-col59",
+      "color": "#b526ac",
+      "category": "Creative Colors",
+      "texture": "creative/col59.png"
+    },
+    {
+      "name": "Creative Color 6",
+      "code": "creative-col6",
+      "color": "#7e8838",
+      "category": "Creative Colors",
+      "texture": "creative/col6.png"
+    },
+    {
+      "name": "Creative Color 60",
+      "code": "creative-col60",
+      "color": "#b52691",
+      "category": "Creative Colors",
+      "texture": "creative/col60.png"
+    },
+    {
+      "name": "Creative Color 61",
+      "code": "creative-col61",
+      "color": "#b52677",
+      "category": "Creative Colors",
+      "texture": "creative/col61.png"
+    },
+    {
+      "name": "Creative Color 62",
+      "code": "creative-col62",
+      "color": "#b5265c",
+      "category": "Creative Colors",
+      "texture": "creative/col62.png"
+    },
+    {
+      "name": "Creative Color 63",
+      "code": "creative-col63",
+      "color": "#b52642",
+      "category": "Creative Colors",
+      "texture": "creative/col63.png"
+    },
+    {
+      "name": "Creative Color 64",
+      "code": "creative-col64",
+      "color": "#000000",
+      "category": "Creative Colors",
+      "texture": "creative/col64.png"
+    },
+    {
+      "name": "Creative Color 65",
+      "code": "creative-col65",
+      "color": "#0e0e0e",
+      "category": "Creative Colors",
+      "texture": "creative/col65.png"
+    },
+    {
+      "name": "Creative Color 66",
+      "code": "creative-col66",
+      "color": "#1c1c1c",
+      "category": "Creative Colors",
+      "texture": "creative/col66.png"
+    },
+    {
+      "name": "Creative Color 67",
+      "code": "creative-col67",
+      "color": "#2b2b2b",
+      "category": "Creative Colors",
+      "texture": "creative/col67.png"
+    },
+    {
+      "name": "Creative Color 68",
+      "code": "creative-col68",
+      "color": "#393939",
+      "category": "Creative Colors",
+      "texture": "creative/col68.png"
+    },
+    {
+      "name": "Creative Color 69",
+      "code": "creative-col69",
+      "color": "#484848",
+      "category": "Creative Colors",
+      "texture": "creative/col69.png"
+    },
+    {
+      "name": "Creative Color 7",
+      "code": "creative-col7",
+      "color": "#6e8838",
+      "category": "Creative Colors",
+      "texture": "creative/col7.png"
+    },
+    {
+      "name": "Creative Color 70",
+      "code": "creative-col70",
+      "color": "#575757",
+      "category": "Creative Colors",
+      "texture": "creative/col70.png"
+    },
+    {
+      "name": "Creative Color 71",
+      "code": "creative-col71",
+      "color": "#656565",
+      "category": "Creative Colors",
+      "texture": "creative/col71.png"
+    },
+    {
+      "name": "Creative Color 72",
+      "code": "creative-col72",
+      "color": "#747474",
+      "category": "Creative Colors",
+      "texture": "creative/col72.png"
+    },
+    {
+      "name": "Creative Color 73",
+      "code": "creative-col73",
+      "color": "#818181",
+      "category": "Creative Colors",
+      "texture": "creative/col73.png"
+    },
+    {
+      "name": "Creative Color 74",
+      "code": "creative-col74",
+      "color": "#909090",
+      "category": "Creative Colors",
+      "texture": "creative/col74.png"
+    },
+    {
+      "name": "Creative Color 75",
+      "code": "creative-col75",
+      "color": "#9f9f9f",
+      "category": "Creative Colors",
+      "texture": "creative/col75.png"
+    },
+    {
+      "name": "Creative Color 76",
+      "code": "creative-col76",
+      "color": "#adadad",
+      "category": "Creative Colors",
+      "texture": "creative/col76.png"
+    },
+    {
+      "name": "Creative Color 77",
+      "code": "creative-col77",
+      "color": "#bcbcbc",
+      "category": "Creative Colors",
+      "texture": "creative/col77.png"
+    },
+    {
+      "name": "Creative Color 78",
+      "code": "creative-col78",
+      "color": "#cacaca",
+      "category": "Creative Colors",
+      "texture": "creative/col78.png"
+    },
+    {
+      "name": "Creative Color 79",
+      "code": "creative-col79",
+      "color": "#d9d9d9",
+      "category": "Creative Colors",
+      "texture": "creative/col79.png"
+    },
+    {
+      "name": "Creative Color 8",
+      "code": "creative-col8",
+      "color": "#608838",
+      "category": "Creative Colors",
+      "texture": "creative/col8.png"
+    },
+    {
+      "name": "Creative Color 9",
+      "code": "creative-col9",
+      "color": "#508838",
+      "category": "Creative Colors",
+      "texture": "creative/col9.png"
+    },
+    {
+      "name": "Accessories",
+      "code": "log-accessories",
+      "color": "#715b47",
+      "category": "Log/Trunk",
+      "texture": "wood/trunk/accessories.png"
+    },
+    {
+      "name": "Aged Accessories",
+      "code": "log-aged-accessories",
+      "color": "#514536",
+      "category": "Log/Trunk",
+      "texture": "wood/trunk/aged-accessories.png"
+    },
+    {
+      "name": "Aged Lid",
+      "code": "log-aged-lid",
+      "color": "#3d3629",
+      "category": "Log/Trunk",
+      "texture": "wood/trunk/aged-lid.png"
+    },
+    {
+      "name": "Aged Sides",
+      "code": "log-aged-sides",
+      "color": "#3a2f22",
+      "category": "Log/Trunk",
+      "texture": "wood/trunk/aged-sides.png"
+    },
+    {
+      "name": "Left Side",
+      "code": "log-left-side",
+      "color": "#7e634c",
+      "category": "Log/Trunk",
+      "texture": "wood/trunk/left-side.png"
+    },
+    {
+      "name": "Lid",
+      "code": "log-lid",
+      "color": "#876649",
+      "category": "Log/Trunk",
+      "texture": "wood/trunk/lid.png"
+    },
+    {
+      "name": "Right Side",
+      "code": "log-right-side",
+      "color": "#7e634b",
+      "category": "Log/Trunk",
+      "texture": "wood/trunk/right-side.png"
+    },
+    {
+      "name": "Sides",
+      "code": "log-sides",
+      "color": "#7c624c",
+      "category": "Log/Trunk",
+      "texture": "wood/trunk/sides.png"
+    },
+    {
+      "name": "Acacia",
+      "code": "planks-acacia",
+      "color": "#77432d",
+      "category": "Planks",
+      "texture": "wood/planks/acacia1.png"
+    },
+    {
+      "name": "Aged",
+      "code": "planks-aged",
+      "color": "#604d3e",
+      "category": "Planks",
+      "texture": "wood/planks/aged1.png"
+    },
+    {
+      "name": "Baldcypress",
+      "code": "planks-baldcypress",
+      "color": "#b9ad91",
+      "category": "Planks",
+      "texture": "wood/planks/baldcypress1.png"
+    },
+    {
+      "name": "Bamboo Side",
+      "code": "planks-bamboo-side",
+      "color": "#736035",
+      "category": "Planks",
+      "texture": "wood/planks/bamboo-side.png"
+    },
+    {
+      "name": "Bamboo Top",
+      "code": "planks-bamboo-top",
+      "color": "#695732",
+      "category": "Planks",
+      "texture": "wood/planks/bamboo-top.png"
+    },
+    {
+      "name": "Bamboosmooth",
+      "code": "planks-bamboosmooth",
+      "color": "#8f7b47",
+      "category": "Planks",
+      "texture": "wood/planks/bamboosmooth.png"
+    },
+    {
+      "name": "Birch",
+      "code": "planks-birch",
+      "color": "#a88e65",
+      "category": "Planks",
+      "texture": "wood/planks/birch1.png"
+    },
+    {
+      "name": "Ebony",
+      "code": "planks-ebony",
+      "color": "#4f3b2f",
+      "category": "Planks",
+      "texture": "wood/planks/ebony1.png"
+    },
+    {
+      "name": "Generic",
+      "code": "planks-generic",
+      "color": "#7e5e41",
+      "category": "Planks",
+      "texture": "wood/planks/generic.png"
+    },
+    {
+      "name": "Kapok",
+      "code": "planks-kapok",
+      "color": "#8c6a3d",
+      "category": "Planks",
+      "texture": "wood/planks/kapok1.png"
+    },
+    {
+      "name": "Larch",
+      "code": "planks-larch",
+      "color": "#c2a385",
+      "category": "Planks",
+      "texture": "wood/planks/larch1.png"
+    },
+    {
+      "name": "Maple",
+      "code": "planks-maple",
+      "color": "#695625",
+      "category": "Planks",
+      "texture": "wood/planks/maple1.png"
+    },
+    {
+      "name": "Oak",
+      "code": "planks-oak",
+      "color": "#806246",
+      "category": "Planks",
+      "texture": "wood/planks/oak1.png"
+    },
+    {
+      "name": "Pine",
+      "code": "planks-pine",
+      "color": "#875a24",
+      "category": "Planks",
+      "texture": "wood/planks/pine1.png"
+    },
+    {
+      "name": "Purpleheart",
+      "code": "planks-purpleheart",
+      "color": "#6f3e4c",
+      "category": "Planks",
+      "texture": "wood/planks/purpleheart1.png"
+    },
+    {
+      "name": "Redwood",
+      "code": "planks-redwood",
+      "color": "#bf8162",
+      "category": "Planks",
+      "texture": "wood/planks/redwood1.png"
+    },
+    {
+      "name": "Rottenebony",
+      "code": "planks-rottenebony",
+      "color": "#38322f",
+      "category": "Planks",
+      "texture": "wood/planks/rottenebony1.png"
+    },
+    {
+      "name": "Walnut",
+      "code": "planks-walnut",
+      "color": "#725f58",
+      "category": "Planks",
+      "texture": "wood/planks/walnut1.png"
+    },
+    {
+      "name": "Diagonal",
+      "code": "plaster-diagonal",
+      "color": "#6a665b",
+      "category": "Plaster",
+      "texture": "stone/plaster/diagonal.png"
+    },
+    {
+      "name": "Plain",
+      "code": "plaster-plain",
+      "color": "#c1c0b9",
+      "category": "Plaster",
+      "texture": "stone/plaster/plain.png"
+    },
+    {
+      "name": "Square",
+      "code": "plaster-square",
+      "color": "#88857b",
+      "category": "Plaster",
+      "texture": "stone/plaster/square.png"
+    },
+    {
+      "name": "Stripes",
+      "code": "plaster-stripes",
+      "color": "#9f9d95",
+      "category": "Plaster",
+      "texture": "stone/plaster/stripes.png"
+    },
+    {
+      "name": "Andesite",
+      "code": "polishedrock-andesite",
+      "color": "#555f66",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/andesite.png"
+    },
+    {
+      "name": "Andesite Inside",
+      "code": "polishedrock-andesite-inside",
+      "color": "#535d65",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/andesite-inside.png"
+    },
+    {
+      "name": "Basalt",
+      "code": "polishedrock-basalt",
+      "color": "#272727",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/basalt.png"
+    },
+    {
+      "name": "Basalt Inside",
+      "code": "polishedrock-basalt-inside",
+      "color": "#262626",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/basalt-inside.png"
+    },
+    {
+      "name": "Bauxite",
+      "code": "polishedrock-bauxite",
+      "color": "#a94820",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/bauxite.png"
+    },
+    {
+      "name": "Bauxite Inside",
+      "code": "polishedrock-bauxite-inside",
+      "color": "#ac461c",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/bauxite-inside.png"
+    },
+    {
+      "name": "Chalk",
+      "code": "polishedrock-chalk",
+      "color": "#b0afa7",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/chalk.png"
+    },
+    {
+      "name": "Chalk Inside",
+      "code": "polishedrock-chalk-inside",
+      "color": "#b3b2ab",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/chalk-inside.png"
+    },
+    {
+      "name": "Chert",
+      "code": "polishedrock-chert",
+      "color": "#4f3426",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/chert.png"
+    },
+    {
+      "name": "Chert Inside",
+      "code": "polishedrock-chert-inside",
+      "color": "#4f3323",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/chert-inside.png"
+    },
+    {
+      "name": "Claystone",
+      "code": "polishedrock-claystone",
+      "color": "#7d5b39",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/claystone.png"
+    },
+    {
+      "name": "Claystone Inside",
+      "code": "polishedrock-claystone-inside",
+      "color": "#7e5a36",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/claystone-inside.png"
+    },
+    {
+      "name": "Conglomerate",
+      "code": "polishedrock-conglomerate",
+      "color": "#695b40",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/conglomerate.png"
+    },
+    {
+      "name": "Conglomerate Inside",
+      "code": "polishedrock-conglomerate-inside",
+      "color": "#68593d",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/conglomerate-inside.png"
+    },
+    {
+      "name": "Granite",
+      "code": "polishedrock-granite",
+      "color": "#766f5e",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/granite.png"
+    },
+    {
+      "name": "Granite Inside",
+      "code": "polishedrock-granite-inside",
+      "color": "#766e5d",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/granite-inside.png"
+    },
+    {
+      "name": "Greenmarble",
+      "code": "polishedrock-greenmarble",
+      "color": "#a1a28d",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/greenmarble.png"
+    },
+    {
+      "name": "Greenmarble Inside",
+      "code": "polishedrock-greenmarble-inside",
+      "color": "#a4a58f",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/greenmarble-inside.png"
+    },
+    {
+      "name": "Kimberlite",
+      "code": "polishedrock-kimberlite",
+      "color": "#505f57",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/kimberlite.png"
+    },
+    {
+      "name": "Kimberlite Inside",
+      "code": "polishedrock-kimberlite-inside",
+      "color": "#4e5d55",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/kimberlite-inside.png"
+    },
+    {
+      "name": "Limestone",
+      "code": "polishedrock-limestone",
+      "color": "#a79974",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/limestone.png"
+    },
+    {
+      "name": "Limestone Inside",
+      "code": "polishedrock-limestone-inside",
+      "color": "#ab9b74",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/limestone-inside.png"
+    },
+    {
+      "name": "Peridotite",
+      "code": "polishedrock-peridotite",
+      "color": "#504c2e",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/peridotite.png"
+    },
+    {
+      "name": "Peridotite Inside",
+      "code": "polishedrock-peridotite-inside",
+      "color": "#504b2c",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/peridotite-inside.png"
+    },
+    {
+      "name": "Phyllite",
+      "code": "polishedrock-phyllite",
+      "color": "#625754",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/phyllite.png"
+    },
+    {
+      "name": "Phyllite Inside",
+      "code": "polishedrock-phyllite-inside",
+      "color": "#615552",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/phyllite-inside.png"
+    },
+    {
+      "name": "Redmarble",
+      "code": "polishedrock-redmarble",
+      "color": "#b59677",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/redmarble.png"
+    },
+    {
+      "name": "Redmarble Inside",
+      "code": "polishedrock-redmarble-inside",
+      "color": "#b99877",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/redmarble-inside.png"
+    },
+    {
+      "name": "Sandstone",
+      "code": "polishedrock-sandstone",
+      "color": "#b68646",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/sandstone.png"
+    },
+    {
+      "name": "Sandstone Inside",
+      "code": "polishedrock-sandstone-inside",
+      "color": "#ba8744",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/sandstone-inside.png"
+    },
+    {
+      "name": "Shale",
+      "code": "polishedrock-shale",
+      "color": "#3d3d3d",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/shale.png"
+    },
+    {
+      "name": "Shale Inside",
+      "code": "polishedrock-shale-inside",
+      "color": "#3b3b3b",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/shale-inside.png"
+    },
+    {
+      "name": "Slate",
+      "code": "polishedrock-slate",
+      "color": "#352b26",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/slate.png"
+    },
+    {
+      "name": "Slate Inside",
+      "code": "polishedrock-slate-inside",
+      "color": "#332924",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/slate-inside.png"
+    },
+    {
+      "name": "Suevite",
+      "code": "polishedrock-suevite",
+      "color": "#595f55",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/suevite.png"
+    },
+    {
+      "name": "Suevite Inside",
+      "code": "polishedrock-suevite-inside",
+      "color": "#575d53",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/suevite-inside.png"
+    },
+    {
+      "name": "Travertine",
+      "code": "polishedrock-travertine",
+      "color": "#c2a882",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/travertine.png"
+    },
+    {
+      "name": "Travertine Inside",
+      "code": "polishedrock-travertine-inside",
+      "color": "#c6ab82",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/travertine-inside.png"
+    },
+    {
+      "name": "Whitemarble",
+      "code": "polishedrock-whitemarble",
+      "color": "#b6bbbb",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/whitemarble.png"
+    },
+    {
+      "name": "Whitemarble Inside",
+      "code": "polishedrock-whitemarble-inside",
+      "color": "#babfbf",
+      "category": "Polished Rock",
+      "texture": "stone/polishedrock/whitemarble-inside.png"
+    },
+    {
+      "name": "Andesite",
+      "code": "rock-andesite",
+      "color": "#727b82",
+      "category": "Rock",
+      "texture": "stone/rock/andesite1.png"
+    },
+    {
+      "name": "Basalt",
+      "code": "rock-basalt",
+      "color": "#333333",
+      "category": "Rock",
+      "texture": "stone/rock/basalt1.png"
+    },
+    {
+      "name": "Bauxite",
+      "code": "rock-bauxite",
+      "color": "#b96634",
+      "category": "Rock",
+      "texture": "stone/rock/bauxite1.png"
+    },
+    {
+      "name": "Chalk",
+      "code": "rock-chalk",
+      "color": "#bebcb5",
+      "category": "Rock",
+      "texture": "stone/rock/chalk1.png"
+    },
+    {
+      "name": "Chert",
+      "code": "rock-chert",
+      "color": "#6e513e",
+      "category": "Rock",
+      "texture": "stone/rock/chert1.png"
+    },
+    {
+      "name": "Claystone",
+      "code": "rock-claystone",
+      "color": "#957855",
+      "category": "Rock",
+      "texture": "stone/rock/claystone1.png"
+    },
+    {
+      "name": "Conglomerate",
+      "code": "rock-conglomerate",
+      "color": "#85785d",
+      "category": "Rock",
+      "texture": "stone/rock/conglomerate1.png"
+    },
+    {
+      "name": "Granite",
+      "code": "rock-granite",
+      "color": "#908a7e",
+      "category": "Rock",
+      "texture": "stone/rock/granite1.png"
+    },
+    {
+      "name": "Greenmarble",
+      "code": "rock-greenmarble",
+      "color": "#b1b2a2",
+      "category": "Rock",
+      "texture": "stone/rock/greenmarble1.png"
+    },
+    {
+      "name": "Halite",
+      "code": "rock-halite",
+      "color": "#d7bdb2",
+      "category": "Rock",
+      "texture": "stone/rock/halite1.png"
+    },
+    {
+      "name": "Kimberlite",
+      "code": "rock-kimberlite",
+      "color": "#697670",
+      "category": "Rock",
+      "texture": "stone/rock/kimberlite1.png"
+    },
+    {
+      "name": "Limestone",
+      "code": "rock-limestone",
+      "color": "#b7ab8e",
+      "category": "Rock",
+      "texture": "stone/rock/limestone1.png"
+    },
+    {
+      "name": "Meteorite Iron",
+      "code": "rock-meteorite-iron",
+      "color": "#565751",
+      "category": "Rock",
+      "texture": "stone/rock/meteorite-iron1.png"
+    },
+    {
+      "name": "Obsidian",
+      "code": "rock-obsidian",
+      "color": "#110a19",
+      "category": "Rock",
+      "texture": "stone/rock/obsidian1.png"
+    },
+    {
+      "name": "Peridotite",
+      "code": "rock-peridotite",
+      "color": "#706b4a",
+      "category": "Rock",
+      "texture": "stone/rock/peridotite1.png"
+    },
+    {
+      "name": "Phyllite",
+      "code": "rock-phyllite",
+      "color": "#7f7471",
+      "category": "Rock",
+      "texture": "stone/rock/phyllite1.png"
+    },
+    {
+      "name": "Redmarble",
+      "code": "rock-redmarble",
+      "color": "#c1aa91",
+      "category": "Rock",
+      "texture": "stone/rock/redmarble1.png"
+    },
+    {
+      "name": "Sandstone",
+      "code": "rock-sandstone",
+      "color": "#c49d66",
+      "category": "Rock",
+      "texture": "stone/rock/sandstone1.png"
+    },
+    {
+      "name": "Scoria",
+      "code": "rock-scoria",
+      "color": "#675c5a",
+      "category": "Rock",
+      "texture": "stone/rock/scoria1.png"
+    },
+    {
+      "name": "Shale",
+      "code": "rock-shale",
+      "color": "#4b4b4b",
+      "category": "Rock",
+      "texture": "stone/rock/shale1.png"
+    },
+    {
+      "name": "Slate",
+      "code": "rock-slate",
+      "color": "#453933",
+      "category": "Rock",
+      "texture": "stone/rock/slate1.png"
+    },
+    {
+      "name": "Suevite",
+      "code": "rock-suevite",
+      "color": "#73786f",
+      "category": "Rock",
+      "texture": "stone/rock/suevite1.png"
+    },
+    {
+      "name": "Sulfur",
+      "code": "rock-sulfur",
+      "color": "#d8b320",
+      "category": "Rock",
+      "texture": "stone/rock/sulfur1.png"
+    },
+    {
+      "name": "Travertine",
+      "code": "rock-travertine",
+      "color": "#cdb799",
+      "category": "Rock",
+      "texture": "stone/rock/travertine1.png"
+    },
+    {
+      "name": "Tuff",
+      "code": "rock-tuff",
+      "color": "#57371d",
+      "category": "Rock",
+      "texture": "stone/rock/tuff1.png"
+    },
+    {
+      "name": "Whitemarble",
+      "code": "rock-whitemarble",
+      "color": "#c5c8c8",
+      "category": "Rock",
+      "texture": "stone/rock/whitemarble1.png"
+    },
+    {
+      "name": "Travertine",
+      "code": "tiles-travertine",
+      "color": "#b9a487",
+      "category": "Tiles",
+      "texture": "stone/tiles/travertine1.png"
+    }
+  ],
+  "categories": [
+    "Bricks",
+    "Cobblestone",
+    "Creative Colors",
+    "Log/Trunk",
+    "Planks",
+    "Plaster",
+    "Polished Rock",
+    "Rock",
+    "Tiles"
+  ]
+}
