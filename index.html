@@ -43,12 +43,10 @@
   /* Preview area */
   .cvwrap { position: relative; margin-top: 6px; }
   .preview-stack { position: relative; width: 100%; }
-  canvas#preview, canvas#gridOverlay, canvas#originalOverlay {
-    width: 100%; display: block; border: 1px solid #44444e; border-radius: 8px;
-    image-rendering: pixelated; background: repeating-conic-gradient(#1a1a1e 0 25%, #101014 0 50%) 0 0/16px 16px;
-  }
-  canvas#gridOverlay, canvas#originalOverlay { position: absolute; inset: 0; height: 100%; pointer-events: none; border: none; background: none; }
-  canvas#originalOverlay { opacity: 0; transition: opacity 0.2s; }
+  canvas#preview { width: 100%; height: auto; display: block; border: 1px solid #44444e; border-radius: 8px;
+    image-rendering: pixelated; background: repeating-conic-gradient(#1a1a1e 0 25%, #101014 0 50%) 0 0/16px 16px; }
+  canvas#gridOverlay, canvas#originalOverlay { position: absolute; inset: 0; pointer-events: none; border: none; background: none;
+    width: 100%; height: 100%; image-rendering: pixelated; }
   .preview-controls { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
   
   /* Stats cards */
@@ -141,7 +139,7 @@
 </style>
 </head>
 <body>
-<h1>⛏ VS ChiselMage <small>v1.2 — Image → ChiselGraph Export</small></h1>
+<h1>⛏ VS ChiselMage <small>v1.2.2 — Image → ChiselGraph Export</small></h1>
 
 <fieldset id="fs-source">
   <legend>1 · Source Image</legend>
@@ -172,6 +170,9 @@
     <div><label>Blocks horizontal (X)</label><input type="number" id="blocksX" min="1" max="8" value="2"></div>
     <div><label>Blocks vertical (Y)</label><input type="number" id="blocksY" min="1" max="8" value="1"></div>
   </div>
+  <div class="row" style="margin-top:8px">
+    <div style="flex:1"><button type="button" class="secondary" id="suggestRatio" style="width:100%">📐 Suggest Block Ratio from Image</button></div>
+  </div>
   <label>Fit mode</label>
   <select id="fitMode">
     <option value="cover" selected>Cover (crop, no bars)</option>
@@ -195,10 +196,6 @@
     <option value="rgb" selected>Weighted RGB (fast)</option>
     <option value="lab">CIELAB ΔE (accurate)</option>
   </select>
-  <label style="display:flex;align-items:center;gap:8px;margin-top:10px">
-    <input type="checkbox" id="showGrid" checked style="width:20px;height:20px">
-    Show 16×16 grid overlay
-  </label>
   <div class="hint">Export size: <b id="sizeInfo">32×16</b> px — exact multiples of 16 so ChiselGraph maps 1 px = 1 voxel per block face.</div>
 </fieldset>
 
@@ -251,7 +248,7 @@
 </fieldset>
 
 <fieldset id="fs-preview">
-  <legend>5 · Preview & Export</legend>
+  <legend>5 · Preview</legend>
   <div class="cvwrap">
     <div class="preview-stack">
       <canvas id="preview" width="16" height="16"></canvas>
@@ -265,18 +262,19 @@
       <span>Original overlay: <b id="overlayOpacityVal">0%</b></span>
     </label>
     <label style="display:flex;align-items:center;gap:8px">
-      <input type="checkbox" id="showGrid" checked style="width:20px;height:20px">
+      <input type="checkbox" id="showGrid" checked style="width:20px;height:20px" onchange="process()">
       Grid overlay
     </label>
   </div>
-  
-  <!-- Stats as visual cards -->
+</fieldset>
+
+<fieldset id="fs-export">
+  <legend>6 · Stats & Export</legend>
   <div class="stats-cards" id="statsCards"></div>
   <details style="margin-top:10px">
     <summary>Raw stats (copyable)</summary>
     <pre id="stats" style="margin-top:8px;max-height:300px;overflow:auto"></pre>
   </details>
-  
   <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
     <button type="button" id="exportPng">⬇ Download PNG (for ChiselGraph)</button>
     <button type="button" class="secondary" id="exportJson">⬇ Download JSON (plan data)</button>
@@ -922,7 +920,7 @@ $("exportPng").onclick = () => {
 $("exportJson").onclick = () => {
   if (!result) return;
   const json = {
-    version: "1.2",
+    version: "1.2.2",
     grid: {w:result.w, h:result.h, voxel:VOX, blocksX:result.bx, blocksY:result.by},
     palette: activePalette.map(p => ({name:p.name, color:p.color, code:p.code})),
     blockStats: result.stats,
@@ -966,7 +964,6 @@ $("fileInput").onchange = e => {
   const im = new Image();
   im.onload = () => { 
     img = im; originalImg = im;
-    process(); 
     // Generate suggested palette from the original image
     const tempCanvas = document.createElement("canvas");
     tempCanvas.width = im.naturalWidth;
@@ -983,6 +980,7 @@ $("fileInput").onchange = e => {
     renderPaletteBar();
     renderSuggestedPalette();
     renderPaletteGrid();
+    process(); // Now process with palette populated
     showToast(`Auto-loaded ${activePalette.length} suggested materials`, false);
     URL.revokeObjectURL(url); 
   };
@@ -994,7 +992,26 @@ $("overlayOpacity").oninput = e => {
   drawOriginalOverlay($("preview").width, $("preview").height, result?.bx||1, result?.by||1);
 };
 
-["textInput","fontSelect","textColor","blocksX","blocksY","fitMode","bgMode","dither","colorspace","showGrid"]
+$("suggestRatio").onclick = () => {
+  if (!img && !originalImg) return showToast("Load an image first", true);
+  const source = img || originalImg;
+  const ar = source.naturalWidth / source.naturalHeight;
+  // Find best bx,by (1-8) that matches aspect ratio
+  let best = {bx:2, by:1, diff:Infinity};
+  for (let bx=1; bx<=8; bx++) {
+    for (let by=1; by<=8; by++) {
+      const targetAr = bx / by;
+      const diff = Math.abs(ar - targetAr);
+      if (diff < best.diff) { best = {bx, by, diff}; }
+    }
+  }
+  $("blocksX").value = best.bx;
+  $("blocksY").value = best.by;
+  process();
+  showToast(`Suggested ${best.bx}×${best.by} blocks (image ratio: ${ar.toFixed(2)})`, false);
+};
+
+["textInput","fontSelect","textColor","blocksX","blocksY","fitMode","bgMode","dither","colorspace"]
   .forEach(id => $(id).addEventListener("input", () => {
     if (["textInput","fontSelect","textColor"].includes(id)) { img = null; originalImg = null; }
     process();
