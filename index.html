@@ -6,282 +6,631 @@
 <title>VS ChiselMage — ChiselGraph Export</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛏</text></svg>">
 <style>
-  :root { color-scheme: dark; }
+  :root {
+    color-scheme: dark;
+    --bg: #131318;
+    --card: #1d1d25;
+    --card2: #24242e;
+    --card3: #2a2a36;
+    --border: #32323e;
+    --border2: #41414f;
+    --text: #e9e9f0;
+    --muted: #9b9ba8;
+    --dim: #6e6e7c;
+    --accent: #5b8cff;
+    --accent-soft: #5b8cff26;
+    --good: #57b26a;
+    --good-soft: #57b26a26;
+    --warn: #e0a34c;
+    --bad: #d05b5b;
+    --radius: 14px;
+  }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
   body {
-    margin: 0; padding: 12px; max-width: 1000px; margin: 0 auto;
-    font-family: system-ui, sans-serif; background: #1b1b1f; color: #e6e6ea;
-    font-size: 15px; line-height: 1.4;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(1100px 500px at 15% -10%, #1c2340 0%, transparent 60%),
+      radial-gradient(900px 420px at 95% 0%, #231a33 0%, transparent 55%),
+      var(--bg);
+    color: var(--text);
+    font-size: 14.5px;
+    line-height: 1.45;
+    min-height: 100vh;
   }
-  h1 { font-size: 1.15rem; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
-  h1 small { font-weight: 400; color: #9a9aa4; font-size: 0.75em; }
-  fieldset { border: 1px solid #3a3a42; border-radius: 10px; padding: 10px; margin: 0 0 10px; min-width: 0; }
-  legend { padding: 0 6px; color: #9a9aa4; font-size: .85rem; cursor: pointer; user-select: none; }
-  legend:hover { color: #fff; }
-  label { display: block; margin: 8px 0 3px; font-size: .85rem; color: #c8c8d0; }
-  input[type=text], input[type=number], select, input[type=color] {
-    width: 100%; padding: 9px 10px; border-radius: 8px;
-    border: 1px solid #44444e; background: #26262c; color: #eee; font-size: 1rem;
+
+  /* ---------- Header ---------- */
+  .app-header {
+    max-width: 920px; margin: 0 auto; padding: 20px 16px 6px;
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
   }
-  input[type=color] { height: 42px; padding: 2px; border: none; background: none; cursor: pointer; }
-  input[type=range] { width: 100%; accent-color: #4a6fa5; }
-  input[type=file] { font-size: .85rem; }
+  .app-header h1 { margin: 0; font-size: 1.25rem; letter-spacing: .2px; }
+  .app-header .ver {
+    background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent);
+    font-size: .65rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; vertical-align: middle;
+  }
+  .app-header .sub { color: var(--muted); font-size: .82rem; }
+  .app-header .sub b { color: var(--text); }
+
+  /* ---------- Wizard rail ---------- */
+  .wiz-rail {
+    max-width: 920px; margin: 12px auto 0; padding: 0 16px;
+    display: flex; gap: 6px; align-items: center;
+  }
+  .rail-step {
+    flex: 1; display: flex; align-items: center; gap: 8px; justify-content: flex-start;
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 10px; cursor: pointer; color: var(--muted); font-size: .78rem; font-weight: 600;
+    transition: border-color .15s, color .15s, background .15s; min-width: 0; text-align: left;
+  }
+  .rail-step .dot {
+    width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card3); border: 1px solid var(--border2); font-size: .68rem; color: var(--muted);
+  }
+  .rail-step .lbl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rail-step:hover { border-color: var(--border2); color: var(--text); }
+  .rail-step.current { border-color: var(--accent); color: #fff; background: #232c44; }
+  .rail-step.current .dot { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .rail-step.done .dot { background: var(--good-soft); border-color: var(--good); color: var(--good); }
+  .rail-sep { color: var(--dim); font-size: .8rem; flex-shrink: 0; }
+  @media (max-width: 700px) { .rail-step .lbl { display: none; } .rail-step { justify-content: center; } }
+
+  /* ---------- Wizard steps ---------- */
+  .wiz-main { max-width: 920px; margin: 0 auto; padding: 12px 16px 40px; }
+  .wiz-step { display: none; }
+  .wiz-step.active { display: block; animation: stepIn .18s ease; }
+  @keyframes stepIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 18px 18px; min-width: 0;
+    box-shadow: 0 8px 24px #0004;
+  }
+  .card h2 {
+    margin: 0 0 12px; font-size: .95rem; font-weight: 700; color: #fff;
+    display: flex; align-items: center; gap: 9px; letter-spacing: .2px;
+  }
+  .card h2 .num {
+    background: var(--accent); color: #fff; width: 22px; height: 22px; border-radius: 7px;
+    display: inline-flex; align-items: center; justify-content: center; font-size: .7rem; flex-shrink: 0;
+  }
+  .card h2 .tag { margin-left: auto; font-size: .68rem; font-weight: 500; color: var(--muted); text-align: right; }
+
+  .wiz-nav { display: flex; gap: 8px; margin-top: 14px; }
+  .wiz-nav button { min-width: 130px; }
+  .wiz-nav .spacer { flex: 1; }
+
+  label.fl { display: block; margin: 10px 0 4px; font-size: .8rem; color: var(--muted); font-weight: 500; }
+  input[type=text], input[type=number], select {
+    width: 100%; padding: 8px 10px; border-radius: 9px;
+    border: 1px solid var(--border2); background: var(--card2); color: var(--text); font-size: .95rem;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  input[type=color] { height: 38px; padding: 2px; border: none; background: none; cursor: pointer; width: 100%; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=file] { font-size: .82rem; color: var(--muted); }
+  input[type=file]::file-selector-button {
+    background: var(--card3); color: var(--text); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 7px 12px; margin-right: 10px; cursor: pointer; font-size: .85rem;
+  }
+  input[type=file]::file-selector-button:hover { border-color: var(--accent); }
+  input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--accent); }
+
   button {
-    padding: 10px 14px; border: 0; border-radius: 8px;
-    background: #4a6fa5; color: #fff; font-size: .95rem; margin: 4px 4px 4px 0; cursor: pointer;
+    padding: 9px 13px; border: 0; border-radius: 9px;
+    background: var(--accent); color: #fff; font-size: .88rem; font-weight: 600;
+    cursor: pointer; transition: filter .12s, border-color .12s, background .12s;
   }
-  button:hover { filter: brightness(1.1); }
-  button:active { filter: brightness(0.95); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  button.secondary { background: #3a3a44; }
-  button.secondary:hover { background: #4a4a54; }
-  button.danger { background: #a54a4a; }
-  button.success { background: #4a854a; }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .row > * { flex: 1; min-width: 110px; }
-  
-  /* Preview area */
-  .cvwrap { position: relative; margin-top: 6px; }
-  .preview-stack { position: relative; width: 100%; }
-  canvas#preview { width: 100%; height: auto; display: block; border: 1px solid #44444e; border-radius: 8px;
-    image-rendering: pixelated; background: repeating-conic-gradient(#1a1a1e 0 25%, #101014 0 50%) 0 0/16px 16px; }
-  canvas#gridOverlay, canvas#originalOverlay { position: absolute; inset: 0; pointer-events: none; border: none; background: none;
-    width: 100%; height: 100%; image-rendering: pixelated; }
-  .preview-controls { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
-  
-  /* Stats cards */
-  .stats-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; margin-top: 8px; }
+  button:hover { filter: brightness(1.12); }
+  button:active { filter: brightness(.92); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.secondary { background: var(--card3); border: 1px solid var(--border2); color: var(--text); font-weight: 500; }
+  button.secondary:hover { border-color: var(--accent); filter: none; }
+  button.ghost { background: transparent; border: 1px solid var(--border2); color: var(--muted); font-weight: 500; }
+  button.ghost:hover { color: var(--text); border-color: var(--accent); filter: none; }
+  button.small { padding: 5px 9px; font-size: .78rem; border-radius: 7px; }
+
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+  .row > .grow { flex: 1; min-width: 100px; }
+  .hint { font-size: .76rem; color: var(--muted); margin-top: 5px; }
+  .hint.warn { color: var(--warn); }
+
+  /* ---------- Segmented tabs ---------- */
+  .seg { display: inline-flex; background: var(--card2); border: 1px solid var(--border2); border-radius: 10px; padding: 3px; gap: 3px; }
+  .seg button { background: transparent; border: 0; color: var(--muted); padding: 6px 18px; border-radius: 8px; font-size: .82rem; font-weight: 600; }
+  .seg button.active { background: var(--accent); color: #fff; }
+
+  .source-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+  .choice {
+    background: var(--card2); border: 1.5px solid var(--border2); border-radius: 12px;
+    padding: 16px 14px; cursor: pointer; text-align: center; transition: border-color .15s, background .15s;
+  }
+  .choice:hover { border-color: var(--accent); }
+  .choice.active { border-color: var(--accent); background: #232c44; box-shadow: 0 0 0 2px var(--accent-soft); }
+  .choice .icon { font-size: 1.6rem; display: block; margin-bottom: 6px; }
+  .choice .ttl { font-weight: 700; font-size: .9rem; }
+  .choice .dsc { font-size: .74rem; color: var(--muted); margin-top: 3px; }
+
+  /* ---------- Crop editor ---------- */
+  .editor-shell {
+    position: relative; margin-top: 10px;
+    border: 1px solid var(--border2); border-radius: 11px;
+    background: repeating-conic-gradient(#17171d 0 25%, #101015 0 50%) 0 0/18px 18px;
+    padding: 12px; display: flex; justify-content: center; outline: none;
+    min-height: 140px;
+  }
+  .editor-shell:focus-visible { box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 1px var(--accent); }
+  .stage { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
+  .stage canvas#editCanvas {
+    display: block; max-width: 100%; max-height: 62vh; width: auto; height: auto;
+    border-radius: 4px;
+  }
+  canvas#cropOverlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  .loupe {
+    position: absolute; z-index: 30; pointer-events: none; display: none;
+    background: #0c0c10; border: 1px solid var(--border2); border-radius: 8px;
+    box-shadow: 0 6px 20px #000a; padding: 3px; text-align: center;
+  }
+  .loupe canvas { display: block; border-radius: 5px; image-rendering: pixelated; }
+  .loupe .loupe-label { font-size: .62rem; color: var(--muted); padding: 2px 0 1px; font-family: ui-monospace, monospace; }
+
+  .crop-toolbar {
+    display: grid; grid-template-columns: repeat(4, minmax(72px, 1fr)) auto;
+    gap: 8px; margin-top: 10px; align-items: end;
+  }
+  @media (max-width: 620px) { .crop-toolbar { grid-template-columns: repeat(2, 1fr) auto; } }
+  .crop-toolbar .fld label { margin: 0 0 3px; font-size: .68rem; color: var(--dim); text-transform: uppercase; letter-spacing: .5px; }
+  .crop-toolbar input[type=number] { padding: 6px 8px; font-family: ui-monospace, monospace; font-size: .85rem; }
+
+  .nudge-group { display: flex; gap: 4px; }
+  .nudge-group button { padding: 6px 10px; font-size: .8rem; background: var(--card3); border: 1px solid var(--border2); color: var(--text); border-radius: 8px; }
+  .nudge-group button:hover { border-color: var(--accent); }
+
+  .crop-actions { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+  .switch { display: inline-flex; align-items: center; gap: 7px; font-size: .8rem; color: var(--muted); cursor: pointer; user-select: none; }
+  .kbd {
+    font-family: ui-monospace, monospace; font-size: .68rem; background: var(--card3);
+    border: 1px solid var(--border2); border-bottom-width: 2px; border-radius: 5px; padding: 1px 5px; color: var(--muted);
+  }
+
+  .editor-empty {
+    text-align: center; color: var(--dim); font-size: .85rem; align-self: center;
+    padding: 34px 10px; width: 100%; line-height: 1.9;
+  }
+  .editor-empty .big { font-size: 1.8rem; }
+
+  /* ---------- Preview ---------- */
+  .preview-shell {
+    position: relative; border: 1px solid var(--border2); border-radius: 11px;
+    background: repeating-conic-gradient(#17171d 0 25%, #101015 0 50%) 0 0/18px 18px;
+    padding: 14px; display: flex; justify-content: center;
+  }
+  .stage-preview { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
+  canvas#preview {
+    display: block; max-width: 100%; max-height: 52vh; width: auto; height: auto;
+    image-rendering: pixelated; border-radius: 3px;
+  }
+  canvas#gridOverlay, canvas#voxelOverlay, canvas#originalOverlay {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; image-rendering: pixelated;
+  }
+  .preview-controls { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+  .preview-controls .sliderbox { flex: 1; min-width: 220px; display: flex; align-items: center; gap: 10px; }
+  .preview-controls .sliderbox span { font-size: .8rem; color: var(--muted); white-space: nowrap; }
+
+  .grid-presets { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+  .grid-presets button { padding: 4px 9px; font-size: .74rem; border-radius: 7px; background: var(--card2); border: 1px solid var(--border2); color: var(--muted); font-weight: 500; }
+  .grid-presets button:hover { color: var(--text); border-color: var(--accent); }
+
+  .sliderline { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .sliderline .lab { font-size: .8rem; color: var(--muted); white-space: nowrap; min-width: 150px; }
+  .sliderline input[type=range] { flex: 1; }
+  .sliderline .val { font-family: ui-monospace, monospace; font-size: .78rem; color: var(--text); min-width: 44px; text-align: right; }
+
+  /* ---------- Palette ---------- */
+  .palette-bar {
+    display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; min-height: 40px;
+    background: var(--card2); border: 1.5px dashed var(--border2); border-radius: 10px;
+    transition: border-color .15s, background .15s;
+  }
+  .palette-bar.drag-over { border-color: var(--accent); background: var(--accent-soft); }
+  .palette-bar-label { color: var(--dim); font-size: .72rem; text-transform: uppercase; letter-spacing: .5px; align-self: center; padding: 0 4px; }
+  .palette-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--card3); border: 1.5px solid var(--border2); border-radius: 999px;
+    padding: 4px 10px; font-size: .78rem; cursor: grab; user-select: none;
+    transition: border-color .15s, transform .1s;
+  }
+  .palette-chip:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .palette-chip.dragging { opacity: .4; cursor: grabbing; }
+  .palette-chip i { width: 13px; height: 13px; border-radius: 4px; display: inline-block; border: 1px solid #0007; background: var(--c); flex-shrink: 0; }
+  .palette-chip .remove { cursor: pointer; color: var(--muted); padding: 0 2px; font-size: .95rem; line-height: 1; margin-left: 3px; }
+  .palette-chip .remove:hover { color: var(--bad); }
+
+  .drawer-trigger {
+    display: flex; align-items: center; gap: 8px; margin-top: 9px;
+    padding: 8px 13px; background: var(--card2); border: 1px solid var(--border2);
+    border-radius: 9px; cursor: pointer; font-size: .82rem; color: var(--muted);
+    width: 100%; font-weight: 600;
+  }
+  .drawer-trigger:hover { border-color: var(--accent); color: var(--text); }
+  .drawer-trigger .arrow { transition: transform .2s; }
+  .drawer-trigger.open .arrow { transform: rotate(180deg); }
+  .drawer-trigger .count { margin-left: auto; color: var(--dim); font-weight: 400; font-size: .75rem; }
+
+  .palette-drawer { display: none; margin-top: 9px; }
+  .palette-drawer.open { display: block; animation: slideDown .18s ease; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .drawer-header { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .drawer-header .search-box { flex: 1; }
+  .search-box { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border2); background: var(--card2); color: var(--text); font-size: .88rem; }
+  .drawer-hint { font-size: .7rem; color: var(--dim); white-space: nowrap; }
+
+  .palette-tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+  .palette-tab {
+    padding: 4px 10px; border-radius: 7px; background: var(--card2); border: 1px solid var(--border2);
+    color: var(--muted); font-size: .7rem; cursor: pointer; font-weight: 500;
+  }
+  .palette-tab:hover { color: var(--text); }
+  .palette-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .palette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; max-height: 360px; overflow-y: auto; padding: 2px; }
+  .palette-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: var(--card2); border: 1.5px solid var(--border); border-radius: 10px; padding: 7px 4px;
+    cursor: pointer; transition: border-color .12s, transform .1s; user-select: none;
+  }
+  .palette-item:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .palette-item.in-active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .palette-item.suggested { border-color: var(--good); }
+  .palette-item.dragging { opacity: .4; border-style: dashed; }
+  .palette-item .swatch { width: 38px; height: 38px; border-radius: 6px; border: 1px solid #0007; background: var(--c); }
+  .palette-item .name { font-size: .62rem; text-align: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); line-height: 1.25; }
+  .palette-item .cat { font-size: .56rem; color: var(--dim); text-transform: uppercase; letter-spacing: .4px; }
+  .palette-item .match-score { font-size: .56rem; color: var(--good); font-weight: 700; background: var(--good-soft); padding: 1px 6px; border-radius: 999px; }
+
+  .empty-state { text-align: center; padding: 16px; color: var(--dim); font-size: .8rem; }
+  .suggested-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; }
+
+  /* ---------- Stats ---------- */
+  .stats-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin-top: 4px; }
   .stat-card {
-    background: #222228; border: 1px solid #3a3a42; border-radius: 10px; padding: 10px;
+    background: var(--card2); border: 1px solid var(--border); border-radius: 11px; padding: 10px;
     display: flex; flex-direction: column; gap: 8px;
   }
   .stat-card-header { display: flex; align-items: center; gap: 10px; }
-  .stat-card-thumb { width: 40px; height: 40px; border-radius: 6px; border: 1px solid #0006; image-rendering: pixelated; flex-shrink: 0; }
-  .stat-card-title { font-weight: 600; font-size: .9rem; }
-  .stat-card-meta { font-size: .75rem; color: #888; }
+  .stat-card-thumb { width: 44px; height: 44px; border-radius: 7px; border: 1px solid #0007; image-rendering: pixelated; flex-shrink: 0; background: repeating-conic-gradient(#15151a 0 25%, #0d0d11 0 50%) 0 0/8px 8px; }
+  .stat-card-title { font-weight: 700; font-size: .85rem; }
+  .stat-card-meta { font-size: .7rem; color: var(--dim); }
   .stat-card-materials { display: flex; flex-wrap: wrap; gap: 4px; }
-  .stat-card-material { display: inline-flex; align-items: center; gap: 4px; font-size: .7rem; padding: 2px 8px; border-radius: 999px; background: #26262c; border: 1px solid #44444e; }
-  .stat-card-material i { width: 10px; height: 10px; border-radius: 3px; border: 1px solid #0006; flex-shrink: 0; }
-  .stat-card-empty { font-size: .75rem; color: #666; font-style: italic; }
-  
-  /* Palette: Two-tier */
-  .palette-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; min-height: 36px; padding: 8px; background: #222228; border: 1px dashed #3a3a42; border-radius: 8px; }
-  .palette-bar.empty::after { content: "Drag blocks here or click 'Show All' →"; color: #666; font-size: .8rem; font-style: italic; margin-left: 8px; }
-  .palette-chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: #26262c; border: 2px solid #3a3a42; border-radius: 999px;
-    padding: 4px 10px; font-size: .8rem; position: relative; cursor: grab;
-    user-select: none; transition: border-color 0.15s, transform 0.1s;
+  .stat-card-material {
+    display: inline-flex; align-items: center; gap: 5px; font-size: .68rem; padding: 2px 8px;
+    border-radius: 999px; background: var(--card3); border: 1px solid var(--border);
   }
-  .palette-chip:hover { border-color: #4a6fa5; transform: translateY(-1px); }
-  .palette-chip.dragging { opacity: 0.5; cursor: grabbing; }
-  .palette-chip i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1px solid #0006; background: var(--c); flex-shrink: 0; }
-  .palette-chip .remove { cursor: pointer; color: #aaa; padding: 0 2px; font-size: 1rem; line-height: 1; margin-left: 4px; }
-  .palette-chip .remove:hover { color: #fff; }
-  
-  .drawer-trigger { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #26262c; border: 1px solid #44444e; border-radius: 8px; cursor: pointer; font-size: .85rem; color: #c8c8d0; width: fit-content; }
-  .drawer-trigger:hover { border-color: #4a6fa5; background: #2e2e38; }
-  .drawer-trigger .arrow { transition: transform 0.2s; }
-  .drawer-trigger.open .arrow { transform: rotate(180deg); }
-  
-  .palette-drawer { display: none; margin-top: 8px; animation: slideDown 0.2s ease; }
-  .palette-drawer.open { display: block; }
-  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-  
-  .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .drawer-search { flex: 1; max-width: 300px; }
-  
-  .palette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; }
-  .palette-item {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    background: #26262c; border: 2px solid #3a3a42; border-radius: 10px; padding: 8px;
-    cursor: pointer; transition: border-color 0.15s, transform 0.1s, box-shadow 0.15s;
-    user-select: none;
-  }
-  .palette-item:hover { border-color: #4a6fa5; transform: translateY(-1px); box-shadow: 0 4px 12px #0006; }
-  .palette-item.in-active { border-color: #4a6fa5; box-shadow: 0 0 0 2px #4a6fa580; }
-  .palette-item.suggested { border-color: #4a854a; box-shadow: 0 0 0 2px #4a854a80; }
-  .palette-item.dragging { opacity: 0.5; border-style: dashed; }
-  .palette-item .swatch { width: 44px; height: 44px; border-radius: 6px; border: 1px solid #0006; background: var(--c); image-rendering: pixelated; }
-  .palette-item .name { font-size: .65rem; text-align: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #c8c8d0; line-height: 1.2; }
-  .palette-item .cat { font-size: .6rem; color: #888; text-transform: uppercase; letter-spacing: .5px; }
-  .palette-item .match-score { font-size: .55rem; color: #4a854a; font-weight: 600; background: #4a854a20; padding: 1px 6px; border-radius: 999px; }
-  
-  .palette-tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
-  .palette-tab { padding: 5px 10px; border-radius: 6px; background: #26262c; border: 1px solid #3a3a42; color: #c8c8d0; font-size: .7rem; cursor: pointer; }
-  .palette-tab.active { background: #4a6fa5; border-color: #4a6fa5; color: #fff; }
-  
-  .hint { font-size: .78rem; color: #888; margin-top: 4px; }
-  .hint.warn { color: #e8a84a; }
-  .hint.success { color: #4a854a; }
-  
-  .loading { display: flex; align-items: center; gap: 8px; color: #888; font-size: .85rem; }
-  .spinner { width: 16px; height: 16px; border: 2px solid #3a3a42; border-top-color: #4a6fa5; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .stat-card-material i { width: 10px; height: 10px; border-radius: 3px; border: 1px solid #0007; flex-shrink: 0; }
+  .stat-card-material .pct { color: var(--dim); }
+
+  details { border: 1px solid var(--border); border-radius: 9px; background: var(--card2); padding: 8px 12px; margin-top: 10px; }
+  summary { cursor: pointer; color: var(--muted); font-size: .78rem; user-select: none; }
+  summary:hover { color: var(--text); }
+  pre#stats { margin-top: 8px; max-height: 280px; overflow: auto; font-size: .72rem; color: var(--muted); }
+
+  .export-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .loading { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .82rem; }
+  .spinner { width: 15px; height: 15px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  
-  .toast { position: fixed; bottom: 20px; right: 20px; background: #26262c; border: 1px solid #4a6fa5; border-radius: 8px; padding: 12px 16px; color: #fff; font-size: .85rem; z-index: 1000; animation: slideIn 0.3s ease; }
-  @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  .toast.error { border-color: #a54a4a; }
-  .toast.success { border-color: #4a854a; }
-  
-  details { border: 1px solid #3a3a42; border-radius: 8px; background: #222228; padding: 8px 12px; margin-top: 8px; }
-  summary { cursor: pointer; color: #9a9aa4; font-size: .8rem; }
-  summary:hover { color: #fff; }
-  
-  .search-box { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #44444e; background: #26262c; color: #eee; font-size: .9rem; margin-bottom: 8px; }
-  .search-box:focus { outline: none; border-color: #4a6fa5; }
-  
-  .empty-state { text-align: center; padding: 20px; color: #666; font-size: .85rem; }
-  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
-  
-  .suggested-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; }
-  .suggested-item { /* same as palette-item */ }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--card3); border: 1px solid var(--accent); border-radius: 10px;
+    padding: 11px 18px; color: var(--text); font-size: .85rem; z-index: 1000;
+    box-shadow: 0 8px 30px #000a; animation: toastIn .25s ease; transition: opacity .3s;
+  }
+  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  .toast.error { border-color: var(--bad); }
+  .toast.success { border-color: var(--good); }
+
+  .footer-note { max-width: 920px; margin: 0 auto; padding: 0 16px 30px; color: var(--dim); font-size: .74rem; }
+  .footer-note a { color: var(--muted); }
 </style>
 </head>
 <body>
-<h1>⛏ VS ChiselMage <small>v1.2.2 — Image → ChiselGraph Export</small></h1>
 
-<fieldset id="fs-source">
-  <legend>1 · Source Image</legend>
-  <label>Image file</label>
-  <input type="file" id="fileInput" accept="image/*">
-  <div class="hint">or</div>
-  <label>Text</label>
-  <input type="text" id="textInput" value="VS" placeholder="Enter text to render">
-  <div class="row">
-    <div>
-      <label>Font</label>
-      <select id="fontSelect">
-        <option>Arial Black</option><option>sans-serif</option><option>serif</option>
-        <option>monospace</option><option>Impact</option><option>Georgia</option>
-        <option>Courier New</option><option>Verdana</option><option>cursive</option>
-      </select>
+<header class="app-header">
+  <h1>⛏ VS ChiselMage <span class="ver">v2.1</span></h1>
+  <div class="sub">Image / Text → <b>ChiselGraph</b> overlay · 1 block = <b>16×16 voxels</b> · pixel-perfect cropping</div>
+</header>
+
+<nav class="wiz-rail" id="wizRail" aria-label="Wizard steps"></nav>
+
+<main class="wiz-main">
+
+  <!-- ============ STEP 1 · SOURCE ============ -->
+  <section class="card wiz-step active" data-step="1">
+    <h2><span class="num">1</span> Choose your source <span class="tag">what should become a build guide?</span></h2>
+
+    <div class="source-choice">
+      <div class="choice active" id="choiceImage">
+        <span class="icon">🖼</span>
+        <span class="ttl">Image</span>
+        <span class="dsc">Photo, logo, pixel art, screenshot — crop exactly the region you want</span>
+      </div>
+      <div class="choice" id="choiceText">
+        <span class="icon">🔤</span>
+        <span class="ttl">Text</span>
+        <span class="dsc">Type text in any font — rendered and chiseled into blocks</span>
+      </div>
     </div>
-    <div>
-      <label>Text color</label>
-      <input type="color" id="textColor" value="#f5f5f5">
+
+    <div id="imageControls">
+      <label class="fl">Image file</label>
+      <input type="file" id="fileInput" accept="image/*">
+      <div class="hint">You can also drag &amp; drop an image in the next step, or paste from clipboard (<span class="kbd">Ctrl</span>+<span class="kbd">V</span>).</div>
     </div>
-  </div>
-</fieldset>
 
-<fieldset id="fs-grid">
-  <legend>2 · Target Grid (ChiselGraph: 1 block = 16×16 voxels)</legend>
-  <div class="row">
-    <div><label>Blocks horizontal (X)</label><input type="number" id="blocksX" min="1" max="8" value="2"></div>
-    <div><label>Blocks vertical (Y)</label><input type="number" id="blocksY" min="1" max="8" value="1"></div>
-  </div>
-  <div class="row" style="margin-top:8px">
-    <div style="flex:1"><button type="button" class="secondary" id="suggestRatio" style="width:100%">📐 Suggest Block Ratio from Image</button></div>
-  </div>
-  <label>Fit mode</label>
-  <select id="fitMode">
-    <option value="cover" selected>Cover (crop, no bars)</option>
-    <option value="contain">Contain (keep ratio, letterbox)</option>
-    <option value="stretch">Stretch (distort, fill exactly)</option>
-  </select>
-  <label>Background</label>
-  <select id="bgMode">
-    <option value="transparent" selected>Transparent (invisible in overlay)</option>
-    <option value="first">First palette color</option>
-  </select>
-  <label>Dithering</label>
-  <select id="dither">
-    <option value="none">None (hard edges)</option>
-    <option value="bayer" selected>Bayer 4×4 (ordered)</option>
-    <option value="floyd">Floyd–Steinberg</option>
-    <option value="atkinson">Atkinson</option>
-  </select>
-  <label>Color distance</label>
-  <select id="colorspace">
-    <option value="rgb" selected>Weighted RGB (fast)</option>
-    <option value="lab">CIELAB ΔE (accurate)</option>
-  </select>
-  <div class="hint">Export size: <b id="sizeInfo">32×16</b> px — exact multiples of 16 so ChiselGraph maps 1 px = 1 voxel per block face.</div>
-</fieldset>
-
-<fieldset id="fs-palette">
-  <legend>3 · Material Palette (max 16 — VS multimaterial limit)</legend>
-  
-  <div id="paletteLoading" class="loading"><div class="spinner"></div>Loading block palette from game assets…</div>
-  <div id="paletteError" class="hint warn" style="display:none"></div>
-  
-  <!-- Tier 1: Compact active chips bar (drop target) -->
-  <div class="palette-bar" id="paletteBar" ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragleave="onDragLeave(event)">
-    <span class="palette-bar-label">Active:</span>
-  </div>
-  <div class="hint" id="paletteBarHint">0/16 materials — drag from drawer or click blocks in drawer to add</div>
-  
-  <!-- Tier 2: Drawer with full palette -->
-  <button type="button" class="drawer-trigger" id="drawerTrigger" onclick="toggleDrawer()">
-    <span>Show All Blocks</span>
-    <span class="arrow">▼</span>
-    <span class="drawer-count" id="drawerCount"></span>
-  </button>
-  
-  <div class="palette-drawer" id="paletteDrawer">
-    <div class="drawer-header">
-      <input type="text" id="paletteSearch" class="search-box drawer-search" placeholder="Search 216 blocks…">
-      <span class="hint" id="drawerFilterHint"></span>
+    <div id="textControls" style="display:none">
+      <div class="row">
+        <div class="grow"><label class="fl">Text</label><input type="text" id="textInput" value="VS" placeholder="Text to render"></div>
+        <div style="width:130px"><label class="fl">Color</label><input type="color" id="textColor" value="#f5f5f5"></div>
+      </div>
+      <div class="row">
+        <div class="grow"><label class="fl">Font</label>
+          <select id="fontSelect">
+            <option>Arial Black</option>
+            <option>Impact</option>
+            <option>Arial</option>
+            <option>Segoe UI</option>
+            <option>Verdana</option>
+            <option>Tahoma</option>
+            <option>Trebuchet MS</option>
+            <option>Times New Roman</option>
+            <option>Georgia</option>
+            <option>Garamond</option>
+            <option>Palatino Linotype</option>
+            <option>Book Antiqua</option>
+            <option>Rockwell</option>
+            <option>Arial Rounded MT Bold</option>
+            <option>Courier New</option>
+            <option>Lucida Console</option>
+            <option>Consolas</option>
+            <option>Comic Sans MS</option>
+            <option>Brush Script MT</option>
+            <option>sans-serif</option>
+            <option>serif</option>
+            <option>monospace</option>
+            <option>cursive</option>
+            <option>fantasy</option>
+            <option value="__custom">Custom font…</option>
+          </select>
+        </div>
+        <div class="grow" id="customFontWrap" style="display:none">
+          <label class="fl">Font family</label>
+          <input type="text" id="customFont" placeholder="e.g. Bebas Neue, Press Start 2P">
+        </div>
+      </div>
+      <div class="hint">Custom fonts must be installed on your system (or loaded via CSS). The preview in step 2 shows exactly what will be chiseled.</div>
     </div>
-    <div class="palette-tabs" id="paletteTabs"></div>
-    <div class="palette-grid" id="paletteGrid"></div>
-  </div>
-  
-  <details style="margin-top:10px">
-    <summary>Custom color (fallback if block not in palette)</summary>
-    <div class="row" style="margin-top:8px">
-      <div><label>Name</label><input type="text" id="customName" placeholder="e.g. My Block"></div>
-      <div><label>Color</label><input type="color" id="customColor" value="#888888"></div>
+
+    <div class="wiz-nav">
+      <span class="spacer"></span>
+      <button type="button" data-nav="next">Next: Crop →</button>
     </div>
-    <button type="button" class="secondary" id="addCustom">+ Add Custom</button>
-  </details>
-</fieldset>
+  </section>
 
-<fieldset id="fs-suggested">
-  <legend>4 · Suggested Palette (auto-generated from image)</legend>
-  <div class="section-header">
-    <span>Colors detected in your image, matched to nearest game blocks</span>
-    <button type="button" class="secondary" id="applySuggested" style="display:none">+ Apply All Suggestions</button>
-  </div>
-  <div class="suggested-grid" id="suggestedGrid" style="display:none"></div>
-  <div class="hint" id="suggestedHint">Upload an image to see suggested palette matches.</div>
-</fieldset>
+  <!-- ============ STEP 2 · CROP ============ -->
+  <section class="card wiz-step" data-step="2">
+    <h2><span class="num">2</span> <span id="cropStepTitle">Crop your image</span> <span class="tag">pixel-perfect selection</span></h2>
 
-<fieldset id="fs-preview">
-  <legend>5 · Preview</legend>
-  <div class="cvwrap">
-    <div class="preview-stack">
-      <canvas id="preview" width="16" height="16"></canvas>
-      <canvas id="originalOverlay" width="16" height="16"></canvas>
-      <canvas id="gridOverlay" width="16" height="16"></canvas>
+    <div class="editor-shell" id="editorShell" tabindex="0" aria-label="Crop editor — drag to select, arrow keys to nudge">
+      <div class="editor-empty" id="editorEmpty">
+        <div class="big">✂️</div>
+        Drop an image here or go back to step 1 to choose a file<br>
+        <span style="font-size:.75rem">Drag on the image to select the crop area — with a magnifier for voxel-exact edges.</span>
+      </div>
+      <div class="stage" id="stage" style="display:none">
+        <canvas id="editCanvas"></canvas>
+        <canvas id="cropOverlay"></canvas>
+        <div class="loupe" id="loupe">
+          <canvas id="loupeCanvas" width="169" height="169"></canvas>
+          <div class="loupe-label" id="loupeLabel"></div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="preview-controls">
-    <label style="flex:1;display:flex;align-items:center;gap:8px;margin:0">
-      <input type="range" id="overlayOpacity" min="0" max="100" value="0" style="width:200px">
-      <span>Original overlay: <b id="overlayOpacityVal">0%</b></span>
-    </label>
-    <label style="display:flex;align-items:center;gap:8px">
-      <input type="checkbox" id="showGrid" checked style="width:20px;height:20px" onchange="process()">
-      Grid overlay
-    </label>
-  </div>
-</fieldset>
 
-<fieldset id="fs-export">
-  <legend>6 · Stats & Export</legend>
-  <div class="stats-cards" id="statsCards"></div>
-  <details style="margin-top:10px">
-    <summary>Raw stats (copyable)</summary>
-    <pre id="stats" style="margin-top:8px;max-height:300px;overflow:auto"></pre>
-  </details>
-  <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
-    <button type="button" id="exportPng">⬇ Download PNG (for ChiselGraph)</button>
-    <button type="button" class="secondary" id="exportJson">⬇ Download JSON (plan data)</button>
-    <button type="button" class="secondary" id="copyStats">📋 Copy Raw Stats</button>
-    <button type="button" class="secondary" id="resetAll">↺ Reset All</button>
-  </div>
-</fieldset>
+    <div class="crop-toolbar" id="cropToolbar" style="display:none">
+      <div class="fld"><label>X</label><input type="number" id="cropX" min="0" step="1"></div>
+      <div class="fld"><label>Y</label><input type="number" id="cropY" min="0" step="1"></div>
+      <div class="fld"><label>W</label><input type="number" id="cropW" min="1" step="1"></div>
+      <div class="fld"><label>H</label><input type="number" id="cropH" min="1" step="1"></div>
+      <div class="nudge-group" title="Nudge crop by 1 px">
+        <button type="button" id="nudgeL" title="Move left 1px (←)">◀</button>
+        <button type="button" id="nudgeR" title="Move right 1px (→)">▶</button>
+        <button type="button" id="nudgeU" title="Move up 1px (↑)">▲</button>
+        <button type="button" id="nudgeD" title="Move down 1px (↓)">▼</button>
+      </div>
+    </div>
+
+    <div class="crop-actions" id="cropActions" style="display:none">
+      <label class="switch" title="Force the crop rectangle to exactly blocksX×16 : blocksY×16 — no letterboxing, no distortion in-game">
+        <input type="checkbox" id="ratioLock" checked>
+        Lock to grid ratio (<span id="ratioLabel">2:1</span>)
+      </label>
+      <button type="button" class="secondary small" id="snapRatio" title="Snap the current crop to the nearest exact grid-ratio rectangle">⊞ Snap to ratio</button>
+      <button type="button" class="ghost small" id="fullCrop" title="Reset crop to the whole image">⛶ Full image</button>
+      <span class="hint" id="cropInfo" style="margin:0"></span>
+    </div>
+    <div class="hint" id="editorKeys" style="display:none; margin-top:7px">
+      <span class="kbd">←↑↓→</span> nudge crop · <span class="kbd">Shift</span>+<span class="kbd">←↑↓→</span> resize crop · <span class="kbd">R</span> snap to ratio · <span class="kbd">F</span> full image
+    </div>
+
+    <div class="wiz-nav">
+      <button type="button" class="secondary" data-nav="back">← Back</button>
+      <span class="spacer"></span>
+      <button type="button" data-nav="next">Next: Grid &amp; Convert →</button>
+    </div>
+  </section>
+
+  <!-- ============ STEP 3 · GRID & CONVERSION ============ -->
+  <section class="card wiz-step" data-step="3">
+    <h2><span class="num">3</span> Grid &amp; conversion <span class="tag">ChiselGraph: 1 block = 16×16 voxels</span></h2>
+
+    <div class="row">
+      <div class="grow"><label class="fl">Blocks horizontal (X)</label><input type="number" id="blocksX" min="1" max="8" value="2"></div>
+      <div class="grow"><label class="fl">Blocks vertical (Y)</label><input type="number" id="blocksY" min="1" max="8" value="1"></div>
+      <div style="width:auto"><label class="fl">&nbsp;</label><button type="button" class="secondary" id="suggestRatio" title="Pick the block grid whose ratio best matches the current crop">📐 Match crop</button></div>
+    </div>
+    <div class="grid-presets" id="gridPresets"></div>
+
+    <div class="row" style="margin-top:10px">
+      <div class="grow"><label class="fl">Fit mode <span style="color:var(--dim)">(within crop)</span></label>
+        <select id="fitMode">
+          <option value="cover" selected>Cover (crop, no bars)</option>
+          <option value="contain">Contain (keep ratio, letterbox)</option>
+          <option value="stretch">Stretch (distort, fill exactly)</option>
+        </select>
+      </div>
+      <div class="grow"><label class="fl">Background</label>
+        <select id="bgMode">
+          <option value="transparent" selected>Transparent (invisible in overlay)</option>
+          <option value="first">First palette color</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:2px">
+      <div class="grow"><label class="fl">Dithering</label>
+        <select id="dither">
+          <option value="none">None (hard edges)</option>
+          <option value="bayer" selected>Bayer 4×4 (ordered)</option>
+          <option value="floyd">Floyd–Steinberg</option>
+          <option value="atkinson">Atkinson</option>
+        </select>
+      </div>
+      <div class="grow"><label class="fl">Color distance</label>
+        <select id="colorspace">
+          <option value="rgb" selected>Weighted RGB (fast)</option>
+          <option value="lab">CIELAB ΔE (accurate)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sliderline">
+      <span class="lab">Smoothing (anti-alias)</span>
+      <input type="range" id="aliasSlider" min="0" max="100" value="50">
+      <span class="val" id="aliasVal">50%</span>
+    </div>
+    <div class="hint">0% = hard pixel edges (nearest-neighbor, crisp retro look) · 100% = maximum smoothing (soft anti-aliased edges, best for photos). The blur scales with how far the crop is downscaled to the grid.</div>
+
+    <div class="hint" style="margin-top:10px">Export size: <b id="sizeInfo">32×16</b> px — exact multiples of 16 so ChiselGraph maps 1 px = 1 voxel per block face.</div>
+
+    <div class="wiz-nav">
+      <button type="button" class="secondary" data-nav="back">← Back</button>
+      <span class="spacer"></span>
+      <button type="button" data-nav="next">Next: Palette →</button>
+    </div>
+  </section>
+
+  <!-- ============ STEP 4 · PALETTE ============ -->
+  <section class="card wiz-step" data-step="4">
+    <h2><span class="num">4</span> Material palette <span class="tag">max 16 — VS multimaterial limit</span></h2>
+
+    <div id="paletteLoading" class="loading"><div class="spinner"></div>Loading block palette from game assets…</div>
+    <div id="paletteError" class="hint warn" style="display:none"></div>
+
+    <div class="palette-bar" id="paletteBar"></div>
+    <div class="hint" id="paletteBarHint">0/16 materials — click blocks in the drawer, or drag them here</div>
+
+    <button type="button" class="drawer-trigger" id="drawerTrigger">
+      <span>Show All Blocks</span>
+      <span class="arrow">▼</span>
+      <span class="count" id="drawerCount"></span>
+    </button>
+
+    <div class="palette-drawer" id="paletteDrawer">
+      <div class="drawer-header">
+        <input type="text" id="paletteSearch" class="search-box" placeholder="Search blocks…">
+        <span class="drawer-hint" id="drawerFilterHint"></span>
+      </div>
+      <div class="palette-tabs" id="paletteTabs"></div>
+      <div class="palette-grid" id="paletteGrid"></div>
+    </div>
+
+    <details style="margin-top:10px">
+      <summary>Custom color (fallback if block not in palette)</summary>
+      <div class="row" style="margin-top:8px">
+        <div class="grow"><label class="fl">Name</label><input type="text" id="customName" placeholder="e.g. My Block"></div>
+        <div style="width:90px"><label class="fl">Color</label><input type="color" id="customColor" value="#888888"></div>
+        <div style="width:auto"><label class="fl">&nbsp;</label><button type="button" class="secondary" id="addCustom">+ Add</button></div>
+      </div>
+    </details>
+
+    <h2 style="margin-top:18px"><span class="num" style="background:var(--good)">★</span> Suggested from your image <span class="tag">auto-matched blocks</span></h2>
+    <div class="row" style="margin-bottom:8px">
+      <span class="hint" style="margin:0" id="suggestedHint">Load an image in step 1 to see suggested block matches.</span>
+      <button type="button" class="secondary small" id="applySuggested" style="display:none">+ Apply All</button>
+    </div>
+    <div class="suggested-grid" id="suggestedGrid" style="display:none"></div>
+
+    <div class="wiz-nav">
+      <button type="button" class="secondary" data-nav="back">← Back</button>
+      <span class="spacer"></span>
+      <button type="button" data-nav="next">Next: Preview &amp; Export →</button>
+    </div>
+  </section>
+
+  <!-- ============ STEP 5 · PREVIEW & EXPORT ============ -->
+  <section class="card wiz-step" data-step="5">
+    <h2><span class="num">5</span> Preview &amp; export <span class="tag" id="previewTag">—</span></h2>
+
+    <div class="preview-shell">
+      <div class="stage-preview" id="stagePreview" style="display:none">
+        <canvas id="preview" width="32" height="16"></canvas>
+        <canvas id="originalOverlay" width="32" height="16"></canvas>
+        <canvas id="gridOverlay" width="32" height="16"></canvas>
+        <canvas id="voxelOverlay" width="32" height="16"></canvas>
+      </div>
+      <div class="editor-empty" id="previewEmpty" style="width:100%">
+        <div class="big">🧱</div>
+        Add materials to the palette (step 4) and the voxel preview appears here.
+      </div>
+    </div>
+    <div class="preview-controls">
+      <div class="sliderbox">
+        <input type="range" id="overlayOpacity" min="0" max="100" value="0">
+        <span>Original <b id="overlayOpacityVal">0%</b></span>
+      </div>
+      <label class="switch"><input type="checkbox" id="showGrid" checked onchange="process()"> Block grid</label>
+      <label class="switch"><input type="checkbox" id="showVoxelGrid" onchange="process()"> Voxel grid</label>
+    </div>
+
+    <div class="stats-cards" id="statsCards"></div>
+    <details>
+      <summary>Raw stats (copyable)</summary>
+      <pre id="stats"></pre>
+    </details>
+    <div class="export-row">
+      <button type="button" id="exportPng">⬇ Download PNG</button>
+      <button type="button" class="secondary" id="exportJson">⬇ Download JSON</button>
+      <button type="button" class="ghost" id="copyStats">📋 Copy Stats</button>
+      <button type="button" class="ghost" id="resetAll">↺ Reset</button>
+    </div>
+    <div class="hint">The PNG is the overlay image: load it in ChiselGraph as a construction-model reference. Blocks X·Y each contribute one 16×16 block face; transparent pixels stay invisible.</div>
+
+    <div class="wiz-nav">
+      <button type="button" class="secondary" data-nav="back">← Back</button>
+      <span class="spacer"></span>
+      <button type="button" id="restartWizard" class="ghost">↺ Start over</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="footer-note">
+  Built for <a href="https://mods.vintagestory.at/chiselgraph" target="_blank" rel="noopener">ChiselGraph</a> (client-side reference overlays for Vintage Story) ·
+  <a href="https://wiki.vintagestory.at/Chisel" target="_blank" rel="noopener">Chiseling wiki</a> · max 16 materials per block face (VS multimaterial limit).
+</div>
 
 <script>
 "use strict";
@@ -291,8 +640,8 @@ const VOX = 16;
 const MAX_MATERIALS = 16;
 const SUGGEST_COUNT = 12;
 
-let img = null;
-let originalImg = null; // for overlay
+let img = null;                 // Image when image-mode
+let usingText = false;          // text mode?
 let result = null;
 let gamePalette = [];
 let activePalette = [];
@@ -300,22 +649,526 @@ let suggestedPalette = [];
 let currentTab = "all";
 let drawerOpen = false;
 
-// --- Palette loading ---
+/* =========================================================
+   WIZARD NAVIGATION
+   ========================================================= */
+const STEP_NAMES = ["Source", "Crop", "Grid", "Palette", "Export"];
+let currentStep = 1;
+
+function renderRail() {
+  $("wizRail").innerHTML = STEP_NAMES.map((name, i) => {
+    const n = i + 1;
+    const state = n === currentStep ? "current" : (n < currentStep ? "done" : "");
+    return `<button class="rail-step ${state}" data-step="${n}" title="Go to step ${n}: ${name}">
+      <span class="dot">${n < currentStep ? "✓" : n}</span><span class="lbl">${name}</span>
+    </button>${n < STEP_NAMES.length ? '<span class="rail-sep">›</span>' : ""}`;
+  }).join("");
+  $("wizRail").querySelectorAll(".rail-step").forEach(btn => {
+    btn.onclick = () => goStep(+btn.dataset.step);
+  });
+}
+
+function goStep(n) {
+  currentStep = Math.max(1, Math.min(STEP_NAMES.length, n));
+  document.querySelectorAll(".wiz-step").forEach(el =>
+    el.classList.toggle("active", +el.dataset.step === currentStep));
+  renderRail();
+  window.scrollTo({top: 0, behavior: "smooth"});
+}
+
+document.querySelectorAll("[data-nav]").forEach(btn => {
+  btn.onclick = () => goStep(currentStep + (btn.dataset.nav === "next" ? 1 : -1));
+});
+$("restartWizard").onclick = () => { resetAllState(); goStep(1); };
+
+/* =========================================================
+   CROP STATE — integer source-pixel rect {x,y,w,h}
+   ========================================================= */
+let crop = {x:0, y:0, w:0, h:0};
+let lastSrcW = 0, lastSrcH = 0;   // detect source-size changes -> reset crop
+let drag = null;                  // active pointer drag state
+
+const srcCanvas = document.createElement("canvas");
+const srcCtx = srcCanvas.getContext("2d", {willReadFrequently:true});
+
+function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+function gridRatio() {
+  const bx = Math.max(1, Math.min(8, +$("blocksX").value || 1));
+  const by = Math.max(1, Math.min(8, +$("blocksY").value || 1));
+  return (bx * VOX) / (by * VOX);
+}
+
+function ratioLocked() { return $("ratioLock").checked; }
+
+function clampCrop(c) {
+  const sw = srcCanvas.width, sh = srcCanvas.height;
+  c.x = clamp(Math.round(c.x), 0, Math.max(0, sw - 1));
+  c.y = clamp(Math.round(c.y), 0, Math.max(0, sh - 1));
+  c.w = clamp(Math.round(c.w), 1, sw - c.x);
+  c.h = clamp(Math.round(c.h), 1, sh - c.y);
+  return c;
+}
+
+function cropToRatio() {
+  // adjust crop h (from w) to exactly match grid ratio, clamped; anchored top-left
+  if (!srcCanvas.width) return;
+  const r = gridRatio();
+  let {x, y, w, h} = crop;
+  h = clamp(Math.round(w / r), 1, srcCanvas.height - y);
+  w = clamp(Math.round(h * r), 1, srcCanvas.width - x);
+  h = clamp(Math.round(w / r), 1, srcCanvas.height - y);
+  crop = {x, y, w, h};
+  updateCropUI();
+  process();
+}
+
+function setCrop(c, {reprocess = true} = {}) {
+  crop = clampCrop(c);
+  updateCropUI();
+  if (reprocess) process();
+}
+
+function updateCropUI() {
+  if (!srcCanvas.width) return;
+  $("cropX").value = crop.x;
+  $("cropY").value = crop.y;
+  $("cropW").value = crop.w;
+  $("cropH").value = crop.h;
+  const r = gridRatio();
+  $("ratioLabel").textContent = `${+$("blocksX").value||1}:${+$("blocksY").value||1}`;
+  $("cropInfo").textContent = `crop ${crop.w}×${crop.h} px · ratio ${(crop.w/crop.h).toFixed(3)} · grid ${r.toFixed(3)}`;
+  drawCropOverlay();
+}
+
+/* ---------- crop overlay rendering ---------- */
+function drawCropOverlay() {
+  const ov = $("cropOverlay");
+  ov.width = srcCanvas.width; ov.height = srcCanvas.height;
+  const g = ov.getContext("2d");
+  g.clearRect(0, 0, ov.width, ov.height);
+  const {x, y, w, h} = crop;
+
+  // dim outside the crop
+  g.fillStyle = "rgba(5,5,10,0.62)";
+  g.fillRect(0, 0, ov.width, y);
+  g.fillRect(0, y + h, ov.width, ov.height - y - h);
+  g.fillRect(0, y, x, h);
+  g.fillRect(x + w, y, ov.width - x - w, h);
+
+  // inside-crop guides: block + voxel grid when ratio-locked
+  if (ratioLocked()) {
+    const bx = +$("blocksX").value || 1, by = +$("blocksY").value || 1;
+    g.strokeStyle = "rgba(120,170,255,0.28)";
+    g.lineWidth = 1;
+    g.beginPath();
+    for (let i = 1; i < bx * VOX; i += VOX) { g.moveTo(x + i + .5, y); g.lineTo(x + i + .5, y + h); }
+    for (let i = 1; i < by * VOX; i += VOX) { g.moveTo(x, y + i + .5); g.lineTo(x + w, y + i + .5); }
+    g.stroke();
+  }
+
+  // border
+  g.strokeStyle = "#5b8cff";
+  g.lineWidth = Math.max(1.5, srcCanvas.width / 400);
+  g.strokeRect(x + .5, y + .5, w - 1, h - 1);
+
+  // rule-of-thirds guides
+  g.strokeStyle = "rgba(255,255,255,0.22)";
+  g.lineWidth = 1;
+  g.beginPath();
+  g.moveTo(x + w/3, y); g.lineTo(x + w/3, y + h);
+  g.moveTo(x + w*2/3, y); g.lineTo(x + w*2/3, y + h);
+  g.moveTo(x, y + h/3); g.lineTo(x + w, y + h/3);
+  g.moveTo(x, y + h*2/3); g.lineTo(x + w, y + h*2/3);
+  g.stroke();
+
+  // handles (constant CSS size -> scale to source px)
+  const r = editCanvas.getBoundingClientRect();
+  if (!r.width) return;
+  const hs = Math.max(4, 9 * (srcCanvas.width / r.width));
+  g.fillStyle = "#5b8cff";
+  g.strokeStyle = "#fff";
+  g.lineWidth = Math.max(1, hs / 8);
+  const pts = handlePoints(x, y, w, h);
+  for (const [hx, hy] of pts) {
+    g.fillRect(hx - hs/2, hy - hs/2, hs, hs);
+    g.strokeRect(hx - hs/2, hy - hs/2, hs, hs);
+  }
+}
+
+function handlePoints(x, y, w, h) {
+  const cx = x + w/2, cy = y + h/2;
+  return [
+    [x, y], [cx, y], [x + w, y],
+    [x, cy],            [x + w, cy],
+    [x, y + h], [cx, y + h], [x + w, y + h],
+  ];
+}
+const HANDLE_IDS = ["nw","n","ne","w","e","sw","s","se"];
+
+function hitHandle(cssX, cssY) {
+  const r = editCanvas.getBoundingClientRect();
+  if (!r.width) return null;
+  const scaleX = r.width / srcCanvas.width;
+  const scaleY = r.height / srcCanvas.height;
+  const hs = 11; // CSS hit radius
+  const pts = handlePoints(crop.x, crop.y, crop.w, crop.h);
+  for (let i = 0; i < pts.length; i++) {
+    const hx = pts[i][0] * scaleX + r.left;
+    const hy = pts[i][1] * scaleY + r.top;
+    if (Math.abs(cssX - hx) <= hs && Math.abs(cssY - hy) <= hs) return HANDLE_IDS[i];
+  }
+  return null;
+}
+
+function toSource(e) {
+  const r = editCanvas.getBoundingClientRect();
+  if (!r.width || !r.height) return {sx: 0, sy: 0};
+  return {
+    sx: (e.clientX - r.left) / r.width * srcCanvas.width,
+    sy: (e.clientY - r.top) / r.height * srcCanvas.height,
+  };
+}
+
+/* ---------- pointer interaction ---------- */
+const stage = $("stage");
+const CURSORS = {nw:"nwse-resize", se:"nwse-resize", ne:"nesw-resize", sw:"nesw-resize", n:"ns-resize", s:"ns-resize", w:"ew-resize", e:"ew-resize"};
+
+stage.addEventListener("pointerdown", e => {
+  if (!hasSource()) return;
+  const h = hitHandle(e.clientX, e.clientY);
+  $("editorShell").focus();
+  stage.setPointerCapture(e.pointerId);
+  const s = toSource(e);
+  if (h) drag = {type:"resize", handle:h, orig:{...crop}};
+  else if (s.sx >= crop.x && s.sx <= crop.x + crop.w && s.sy >= crop.y && s.sy <= crop.y + crop.h)
+    drag = {type:"move", grabDx: Math.round(s.sx) - crop.x, grabDy: Math.round(s.sy) - crop.y};
+  else drag = {type:"new", sx: Math.round(clamp(s.sx, 0, srcCanvas.width)), sy: Math.round(clamp(s.sy, 0, srcCanvas.height))};
+  hideLoupe();
+  e.preventDefault();
+});
+
+stage.addEventListener("pointermove", e => {
+  if (!hasSource()) return;
+  if (drag) { applyDrag(e); updateLoupe(e); }
+  else {
+    const h = hitHandle(e.clientX, e.clientY);
+    const s = toSource(e);
+    const inside = s.sx >= crop.x && s.sx <= crop.x + crop.w && s.sy >= crop.y && s.sy <= crop.y + crop.h;
+    stage.style.cursor = h ? CURSORS[h] : (inside ? "move" : "crosshair");
+    updateLoupe(e);
+  }
+});
+
+function endDrag() {
+  if (!drag) return;
+  const d = drag;
+  drag = null;
+  if (d.type === "move") { updateCropUI(); process(); return; }
+  if (ratioLocked()) cropToRatio(); // snap + process
+  else { updateCropUI(); process(); }
+}
+stage.addEventListener("pointerup", endDrag);
+stage.addEventListener("pointercancel", endDrag);
+stage.addEventListener("pointerleave", e => { if (!drag) hideLoupe(); });
+
+function applyDrag(e) {
+  const s = toSource(e);
+  const sw = srcCanvas.width, sh = srcCanvas.height;
+  if (drag.type === "move") {
+    crop.x = clamp(Math.round(s.sx) - drag.grabDx, 0, sw - crop.w);
+    crop.y = clamp(Math.round(s.sy) - drag.grabDy, 0, sh - crop.h);
+    updateCropUI();
+  } else if (drag.type === "new") {
+    const x1 = clamp(Math.round(s.sx), 0, sw), y1 = clamp(Math.round(s.sy), 0, sh);
+    let c = {x: Math.min(drag.sx, x1), y: Math.min(drag.sy, y1), w: Math.abs(x1 - drag.sx), h: Math.abs(y1 - drag.sy)};
+    if (ratioLocked() && c.w > 0) {
+      const r = gridRatio();
+      c.h = Math.round(c.w / r);
+      if (s.sy < drag.sy) c.y = drag.sy - c.h; // grow upward if dragging up
+    }
+    crop = clampCrop(c);
+    updateCropUI();
+  } else if (drag.type === "resize") {
+    applyResize(drag.handle, s);
+  }
+}
+
+function applyResize(handle, s) {
+  const sw = srcCanvas.width, sh = srcCanvas.height;
+  const o = drag.orig;
+  let {x, y, w, h} = o;
+  const min = 2;
+  const right0 = o.x + o.w, bottom0 = o.y + o.h;
+  const mx = clamp(Math.round(s.sx), 0, sw), my = clamp(Math.round(s.sy), 0, sh);
+
+  if (handle.includes("e")) w = clamp(mx - x, min, sw - x);
+  if (handle.includes("w")) { x = clamp(mx, 0, right0 - min); w = right0 - x; }
+  if (handle.includes("s")) h = clamp(my - y, min, sh - y);
+  if (handle.includes("n")) { y = clamp(my, 0, bottom0 - min); h = bottom0 - y; }
+
+  if (ratioLocked() && handle.length === 2) {
+    // corner handle: force exact grid ratio, keep the opposite corner anchored
+    const r = gridRatio();
+    for (let it = 0; it < 3; it++) {
+      const nh = clamp(Math.round(w / r), min, sh - y);
+      if (handle.includes("n")) y = clamp(bottom0 - nh, 0, bottom0 - min);
+      h = Math.min(nh, bottom0 - y);
+      const nw = clamp(Math.round(h * r), min, sw - x);
+      if (handle.includes("w")) x = clamp(right0 - nw, 0, right0 - min);
+      w = Math.min(nw, right0 - x);
+    }
+  } else if (ratioLocked()) {
+    // edge handle: adjust the perpendicular dimension around the original center
+    const r = gridRatio();
+    const ocx = o.x + o.w / 2, ocy = o.y + o.h / 2;
+    if (handle === "e" || handle === "w") {
+      h = clamp(Math.round(w / r), min, sh);
+      y = clamp(Math.round(ocy - h / 2), 0, sh - h);
+    } else {
+      w = clamp(Math.round(h * r), min, sw);
+      x = clamp(Math.round(ocx - w / 2), 0, sw - w);
+    }
+  }
+
+  crop = clampCrop({x, y, w, h});
+  updateCropUI();
+}
+
+/* ---------- magnifier loupe ---------- */
+const LOUPE_ZOOM = 8, LOUPE_SPAN = 21;
+function updateLoupe(e) {
+  const loupe = $("loupe");
+  const r = editCanvas.getBoundingClientRect();
+  if (!r.width) return;
+  const s = toSource(e);
+  if (s.sx < 0 || s.sx > srcCanvas.width || s.sy < 0 || s.sy > srcCanvas.height) { hideLoupe(); return; }
+  const px = clamp(Math.floor(s.sx), 0, srcCanvas.width - 1);
+  const py = clamp(Math.floor(s.sy), 0, srcCanvas.height - 1);
+
+  loupe.style.display = "block";
+  const lc = $("loupeCanvas");
+  const g = lc.getContext("2d");
+  g.imageSmoothingEnabled = false;
+  const cell = lc.width / LOUPE_SPAN;
+  const half = Math.floor(LOUPE_SPAN / 2);
+  const sx0 = px - half, sy0 = py - half;
+  g.fillStyle = "#0c0c10";
+  g.fillRect(0, 0, lc.width, lc.height);
+  // clipped source window so edges don't stretch
+  const sx = Math.max(0, sx0), sy = Math.max(0, sy0);
+  const sw2 = Math.min(LOUPE_SPAN, srcCanvas.width - sx0);
+  const sh2 = Math.min(LOUPE_SPAN, srcCanvas.height - sy0);
+  g.drawImage(srcCanvas, sx, sy, sw2, sh2,
+              (sx - sx0) * cell, (sy - sy0) * cell, sw2 * cell, sh2 * cell);
+  // crosshair
+  g.strokeStyle = "rgba(91,140,255,0.9)";
+  g.lineWidth = 1.5;
+  g.strokeRect(lc.width/2 - cell/2, lc.height/2 - cell/2, cell, cell);
+
+  // pixel color label
+  try {
+    const d = srcCtx.getImageData(px, py, 1, 1).data;
+    const hex = "#" + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, "0")).join("");
+    $("loupeLabel").textContent = `${px}, ${py}  ${hex}`;
+  } catch { $("loupeLabel").textContent = `${px}, ${py}`; }
+
+  // position: prefer right of cursor, flip if near right edge
+  const stageR = stage.getBoundingClientRect();
+  const lw = loupe.offsetWidth || 180, lh = loupe.offsetHeight || 190;
+  let lx = e.clientX - stageR.left + 18;
+  let ly = e.clientY - stageR.top + 18;
+  if (lx + lw > stageR.width) lx = e.clientX - stageR.left - lw - 18;
+  if (ly + lh > stageR.height) ly = Math.max(0, e.clientY - stageR.top - lh - 18);
+  loupe.style.left = lx + "px";
+  loupe.style.top = ly + "px";
+}
+function hideLoupe() { $("loupe").style.display = "none"; }
+
+/* ---------- keyboard nudging ---------- */
+$("editorShell").addEventListener("keydown", e => {
+  if (!hasSource()) return;
+  const step = e.shiftKey ? 8 : 1;
+  const k = e.key;
+  let handled = true;
+  if (e.shiftKey) {
+    if (k === "ArrowRight") setCrop({...crop, w: Math.min(crop.w + step, srcCanvas.width - crop.x)});
+    else if (k === "ArrowLeft") setCrop({...crop, x: crop.x, w: Math.max(1, crop.w - step)});
+    else if (k === "ArrowDown") setCrop({...crop, h: Math.min(crop.h + step, srcCanvas.height - crop.y)});
+    else if (k === "ArrowUp") setCrop({...crop, y: crop.y, h: Math.max(1, crop.h - step)});
+    else handled = false;
+  } else if (k === "ArrowLeft") setCrop({...crop, x: Math.max(0, crop.x - step)});
+  else if (k === "ArrowRight") setCrop({...crop, x: Math.min(srcCanvas.width - crop.w, crop.x + step)});
+  else if (k === "ArrowUp") setCrop({...crop, y: Math.max(0, crop.y - step)});
+  else if (k === "ArrowDown") setCrop({...crop, y: Math.min(srcCanvas.height - crop.h, crop.y + step)});
+  else if (k === "r" || k === "R") { cropToRatio(); showToast("Crop snapped to grid ratio"); }
+  else if (k === "f" || k === "F") { setCrop({x:0, y:0, w:srcCanvas.width, h:srcCanvas.height}); }
+  else handled = false;
+  if (handled) e.preventDefault();
+});
+
+/* nudge buttons */
+$("nudgeL").onclick = () => setCrop({...crop, x: Math.max(0, crop.x - 1)});
+$("nudgeR").onclick = () => setCrop({...crop, x: Math.min(srcCanvas.width - crop.w, crop.x + 1)});
+$("nudgeU").onclick = () => setCrop({...crop, y: Math.max(0, crop.y - 1)});
+$("nudgeD").onclick = () => setCrop({...crop, y: Math.min(srcCanvas.height - crop.h, crop.y + 1)});
+
+/* numeric inputs */
+for (const [id, key] of [["cropX","x"],["cropY","y"],["cropW","w"],["cropH","h"]]) {
+  $(id).addEventListener("change", () => {
+    let v = Math.round(+$(id).value);
+    if (!Number.isFinite(v)) v = crop[key];
+    const c = {...crop, [key]: v};
+    if (!ratioLocked() || key === "x" || key === "y") setCrop(c);
+    else { setCrop(c, {reprocess: false}); cropToRatio(); }
+  });
+}
+
+$("snapRatio").onclick = () => cropToRatio();
+$("fullCrop").onclick = () => setCrop({x:0, y:0, w:srcCanvas.width, h:srcCanvas.height});
+$("ratioLock").onchange = () => {
+  if (ratioLocked()) cropToRatio();
+  else { updateCropUI(); }
+};
+
+function hasSource() { return srcCanvas.width > 0; }
+
+/* =========================================================
+   SOURCE (image / text)
+   ========================================================= */
+function showTab(which) {
+  usingText = which === "text";
+  $("choiceImage").classList.toggle("active", !usingText);
+  $("choiceText").classList.toggle("active", usingText);
+  $("imageControls").style.display = usingText ? "none" : "block";
+  $("textControls").style.display = usingText ? "block" : "none";
+  $("cropStepTitle").textContent = usingText ? "Crop the rendered text" : "Crop your image";
+  renderSource();
+  process();
+}
+$("choiceImage").onclick = () => showTab("image");
+$("choiceText").onclick = () => showTab("text");
+
+function activeFontFamily() {
+  const v = $("fontSelect").value;
+  return v === "__custom" ? ($("customFont").value.trim() || "sans-serif") : v;
+}
+
+function renderSource() {
+  if (!usingText && img) {
+    srcCanvas.width = img.naturalWidth; srcCanvas.height = img.naturalHeight;
+    srcCtx.clearRect(0, 0, srcCanvas.width, srcCanvas.height);
+    srcCtx.drawImage(img, 0, 0);
+  } else if (usingText) {
+    const text = $("textInput").value || " ";
+    const fontFam = activeFontFamily();
+    const fs = 100;
+    srcCtx.font = `bold ${fs}px ${fontFam}`;
+    const tw = Math.ceil(srcCtx.measureText(text).width) || 1;
+    srcCanvas.width = tw + 20; srcCanvas.height = Math.ceil(fs * 1.5);
+    srcCtx.clearRect(0, 0, srcCanvas.width, srcCanvas.height);
+    srcCtx.font = `bold ${fs}px ${fontFam}`;
+    srcCtx.textBaseline = "middle";
+    srcCtx.fillStyle = $("textColor").value;
+    srcCtx.fillText(text, 10, srcCanvas.height / 2);
+  } else {
+    srcCanvas.width = 0; srcCanvas.height = 0;
+  }
+
+  // Reset crop if the source dimensions changed
+  if (srcCanvas.width !== lastSrcW || srcCanvas.height !== lastSrcH) {
+    crop = {x: 0, y: 0, w: srcCanvas.width, h: srcCanvas.height};
+    lastSrcW = srcCanvas.width; lastSrcH = srcCanvas.height;
+  }
+
+  const has = hasSource();
+  $("stage").style.display = has ? "inline-block" : "none";
+  $("editorEmpty").style.display = has ? "none" : "flex";
+  $("cropToolbar").style.display = has ? "grid" : "none";
+  $("cropActions").style.display = has ? "flex" : "none";
+  $("editorKeys").style.display = has ? "block" : "none";
+
+  if (has) {
+    const ec = $("editCanvas");
+    ec.width = srcCanvas.width; ec.height = srcCanvas.height;
+    ec.getContext("2d").drawImage(srcCanvas, 0, 0);
+    updateCropUI();
+  }
+}
+
+/* ---------- image loading (file / drop / paste) ---------- */
+function loadFromImage(im) {
+  img = im;
+  showTab("image");
+  renderSource();
+
+  // suggested palette from the full image
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = im.naturalWidth; tempCanvas.height = im.naturalHeight;
+  tempCanvas.getContext("2d").drawImage(im, 0, 0);
+  suggestedPalette = generateSuggestedPalette(tempCanvas);
+  activePalette = [];
+  for (const s of suggestedPalette) {
+    if (activePalette.length >= MAX_MATERIALS) break;
+    activePalette.push({...s, custom: false, matchScore: undefined});
+  }
+  renderPaletteBar();
+  renderSuggestedPalette();
+  renderPaletteGrid();
+  process();
+  goStep(2); // advance the wizard to the crop step
+  showToast(`Loaded ${im.naturalWidth}×${im.naturalHeight}px · ${activePalette.length} suggested materials`);
+}
+
+$("fileInput").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  imageFileToImg(f);
+};
+
+function imageFileToImg(f) {
+  const url = URL.createObjectURL(f);
+  const im = new Image();
+  im.onload = () => { loadFromImage(im); URL.revokeObjectURL(url); };
+  im.src = url;
+}
+
+/* drag & drop onto the whole editor shell */
+const shell = $("editorShell");
+["dragover", "dragenter"].forEach(ev => shell.addEventListener(ev, e => { e.preventDefault(); shell.style.borderColor = "var(--accent)"; }));
+["dragleave", "drop"].forEach(ev => shell.addEventListener(ev, e => { e.preventDefault(); shell.style.borderColor = ""; }));
+shell.addEventListener("drop", e => {
+  const f = e.dataTransfer?.files?.[0];
+  if (f && f.type.startsWith("image/")) imageFileToImg(f);
+});
+
+/* clipboard paste (works anywhere in the app) */
+document.addEventListener("paste", e => {
+  for (const item of e.clipboardData?.items || []) {
+    if (item.type.startsWith("image/")) {
+      const f = item.getAsFile();
+      if (f) { imageFileToImg(f); e.preventDefault(); return; }
+    }
+  }
+});
+
+/* =========================================================
+   PALETTE
+   ========================================================= */
 async function loadGamePalette() {
   const loading = $("paletteLoading");
-  const errorEl = $("paletteError");
   const search = $("paletteSearch");
   const tabs = $("paletteTabs");
   const grid = $("paletteGrid");
-
   try {
-    const resp = await fetch("block-palette.json", { cache: "no-cache" });
+    const resp = await fetch("block-palette.json", {cache: "no-cache"});
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     gamePalette = data.blocks || [];
     console.log(`Loaded ${gamePalette.length} blocks from game assets`);
   } catch (e) {
     console.warn("Could not load block-palette.json, using fallback:", e);
+    $("paletteError").style.display = "block";
+    $("paletteError").textContent = "⚠ block-palette.json not reachable (serving from file://?) — using 16-block fallback. Serve the folder with a web server for the full 216-block palette.";
     gamePalette = [
       {name:"Granite",code:"rock-granite",color:"#908a7e",category:"Rock",texture:""},
       {name:"Andesite",code:"rock-andesite",color:"#727b82",category:"Rock",texture:""},
@@ -335,7 +1188,6 @@ async function loadGamePalette() {
       {name:"Plaster",code:"plaster-plain",color:"#c1c0b9",category:"Plaster",texture:""},
     ];
   }
-
   loading.style.display = "none";
   search.style.display = "block";
   tabs.style.display = "flex";
@@ -348,7 +1200,7 @@ async function loadGamePalette() {
 function renderTabs() {
   const tabs = $("paletteTabs");
   const categories = ["all", ...new Set(gamePalette.map(b => b.category))];
-  tabs.innerHTML = categories.map(cat => 
+  tabs.innerHTML = categories.map(cat =>
     `<button class="palette-tab ${cat === currentTab ? "active" : ""}" data-cat="${cat}">${cat === "all" ? "All" : cat}</button>`
   ).join("");
   tabs.querySelectorAll(".palette-tab").forEach(btn => {
@@ -359,145 +1211,101 @@ function renderTabs() {
 function renderPaletteGrid() {
   const grid = $("paletteGrid");
   const search = $("paletteSearch").value.toLowerCase();
-  const filtered = gamePalette.filter(b => 
+  const filtered = gamePalette.filter(b =>
     (currentTab === "all" || b.category === currentTab) &&
     b.name.toLowerCase().includes(search)
   );
-
   if (filtered.length === 0) {
     grid.innerHTML = `<div class="empty-state">No blocks match "${search}"${currentTab !== "all" ? ` in ${currentTab}` : ""}</div>`;
     updateDrawerFilterHint(0);
     return;
   }
-
   grid.innerHTML = filtered.map((b) => {
     const isActive = activePalette.some(a => a.code === b.code);
-    const isSuggested = suggestedPalette.some(s => s.code === b.code);
+    const sugg = suggestedPalette.find(s => s.code === b.code);
     let cls = "palette-item";
     if (isActive) cls += " in-active";
-    else if (isSuggested) cls += " suggested";
+    else if (sugg) cls += " suggested";
     return `
-      <div class="${cls}" data-code="${b.code}" draggable="true" title="${b.name} (${b.category})${isSuggested ? ` — ${suggestedPalette.find(s=>s.code===b.code).matchScore}% match` : ''}">
+      <div class="${cls}" data-code="${b.code}" draggable="true" title="${b.name} (${b.category})${sugg ? ` — ${sugg.matchScore}% match` : ''}">
         <div class="swatch" style="--c:${b.color}"></div>
         <div class="name">${b.name}</div>
         <div class="cat">${b.category}</div>
-        ${isSuggested ? `<div class="match-score">${suggestedPalette.find(s=>s.code===b.code).matchScore}% match</div>` : ''}
-      </div>
-    `;
+        ${sugg && !isActive ? `<div class="match-score">${sugg.matchScore}%</div>` : ''}
+      </div>`;
   }).join("");
-
   updateDrawerFilterHint(filtered.length);
-  
-  // Click to add
   grid.querySelectorAll(".palette-item").forEach(el => {
-    el.onclick = (e) => { if (!el.classList.contains("dragging")) addToActivePalette(el.dataset.code); };
-    // Drag from grid
-    el.ondragstart = e => { 
-      el.classList.add("dragging"); 
-      e.dataTransfer.setData("text/plain", el.dataset.code);
-      e.dataTransfer.effectAllowed = "copy";
-    };
+    el.onclick = () => { if (!el.classList.contains("dragging")) addToActivePalette(el.dataset.code); };
+    el.ondragstart = e => { el.classList.add("dragging"); e.dataTransfer.setData("text/plain", el.dataset.code); e.dataTransfer.effectAllowed = "copy"; };
     el.ondragend = () => el.classList.remove("dragging");
   });
 }
 
 function updateDrawerFilterHint(count) {
-  const hint = $("drawerFilterHint");
   const search = $("paletteSearch").value;
-  if (search) hint.textContent = `${count} matches`;
-  else hint.textContent = `${gamePalette.length} blocks`;
+  $("drawerFilterHint").textContent = search ? `${count} matches` : `${gamePalette.length} blocks`;
 }
+function updateDrawerCount() { $("drawerCount").textContent = `(${gamePalette.length})`; }
 
-function updateDrawerCount() {
-  $("drawerCount").textContent = `(${gamePalette.length})`;
-}
-
-function toggleDrawer() {
+$("drawerTrigger").onclick = () => {
   drawerOpen = !drawerOpen;
   $("paletteDrawer").classList.toggle("open", drawerOpen);
   $("drawerTrigger").classList.toggle("open", drawerOpen);
-}
+};
 
 function addToActivePalette(code) {
-  if (activePalette.length >= MAX_MATERIALS) {
-    showToast(`Maximum ${MAX_MATERIALS} materials reached`, true);
-    return;
-  }
+  if (activePalette.length >= MAX_MATERIALS) return showToast(`Maximum ${MAX_MATERIALS} materials reached`, true);
   const block = gamePalette.find(b => b.code === code);
-  if (!block) return;
-  if (activePalette.some(a => a.code === code)) return;
+  if (!block || activePalette.some(a => a.code === code)) return;
   activePalette.push({...block, custom: false});
-  renderPaletteBar();
-  renderPaletteGrid();
-  renderSuggestedPalette();
+  renderPaletteBar(); renderPaletteGrid(); renderSuggestedPalette();
   process();
-  showToast(`Added ${block.name}`, false);
+  showToast(`Added ${block.name}`);
 }
 
 function removeFromActivePalette(index) {
   activePalette.splice(index, 1);
-  renderPaletteBar();
-  renderPaletteGrid();
-  renderSuggestedPalette();
+  renderPaletteBar(); renderPaletteGrid(); renderSuggestedPalette();
   process();
 }
 
 function renderPaletteBar() {
   const bar = $("paletteBar");
-  const hint = $("paletteBarHint");
-  
   const chipsHtml = activePalette.map((p, i) => `
     <span class="palette-chip" style="--c:${p.color}" draggable="true" data-index="${i}">
       <i></i>${p.name}
       <span class="remove" title="Remove">✕</span>
-    </span>
-  `).join("");
-  
-  bar.innerHTML = `<span class="palette-bar-label">Active:</span>` + chipsHtml;
-  hint.textContent = `${activePalette.length}/${MAX_MATERIALS} materials`;
-  
-  // Drag to reorder within bar
+    </span>`).join("");
+  bar.innerHTML = activePalette.length
+    ? `<span class="palette-bar-label">Active</span>` + chipsHtml
+    : `<span class="palette-bar-label">Active palette — empty</span>`;
+  $("paletteBarHint").textContent = `${activePalette.length}/${MAX_MATERIALS} materials`;
+
   let dragSrcIdx = null;
   bar.querySelectorAll(".palette-chip").forEach(chip => {
-    chip.ondragstart = e => { 
-      dragSrcIdx = +chip.dataset.index; 
-      chip.classList.add("dragging"); 
-      e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("text/plain", "reorder:" + dragSrcIdx);
-    };
+    chip.ondragstart = e => { dragSrcIdx = +chip.dataset.index; chip.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", "reorder:" + dragSrcIdx); };
     chip.ondragend = () => chip.classList.remove("dragging");
     chip.ondragover = e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; };
     chip.ondrop = e => {
-      e.preventDefault();
+      e.preventDefault(); e.stopPropagation();
       const targetIdx = +chip.dataset.index;
       if (dragSrcIdx !== null && dragSrcIdx !== targetIdx) {
         const [moved] = activePalette.splice(dragSrcIdx, 1);
         activePalette.splice(targetIdx, 0, moved);
-        renderPaletteBar();
-        process();
+        renderPaletteBar(); process();
       }
     };
     chip.querySelector(".remove").onclick = e => { e.stopPropagation(); removeFromActivePalette(+chip.dataset.index); };
   });
-  
-  // Bar as drop target for drawer items
-  bar.ondragover = e => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; bar.classList.add("drag-over"); };
+
+  bar.ondragover = e => { e.preventDefault(); bar.classList.add("drag-over"); };
   bar.ondragleave = () => bar.classList.remove("drag-over");
   bar.ondrop = e => {
-    e.preventDefault();
-    bar.classList.remove("drag-over");
+    e.preventDefault(); bar.classList.remove("drag-over");
     const code = e.dataTransfer.getData("text/plain");
     if (code && !code.startsWith("reorder:")) addToActivePalette(code);
   };
-}
-
-function onDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; }
-function onDragLeave(e) { e.target.classList.remove("drag-over"); }
-function onDrop(e) {
-  e.preventDefault();
-  e.target.classList.remove("drag-over");
-  const code = e.dataTransfer.getData("text/plain");
-  if (code && !code.startsWith("reorder:")) addToActivePalette(code);
 }
 
 $("addCustom").onclick = () => {
@@ -505,30 +1313,29 @@ $("addCustom").onclick = () => {
   const color = $("customColor").value;
   if (!name) return showToast("Enter a name", true);
   if (activePalette.length >= MAX_MATERIALS) return showToast(`Max ${MAX_MATERIALS} materials`, true);
-  activePalette.push({name, code:`custom-${Date.now()}`, color, category:"Custom", custom:true});
+  activePalette.push({name, code: `custom-${Date.now()}`, color, category: "Custom", custom: true});
   $("customName").value = "";
   renderPaletteBar();
   process();
 };
-
 $("paletteSearch").oninput = renderPaletteGrid;
 
-// --- Suggested Palette Generation ---
+/* =========================================================
+   SUGGESTED PALETTE
+   ========================================================= */
 function generateSuggestedPalette(sourceCanvas) {
   if (!sourceCanvas) return [];
   const w = sourceCanvas.width, h = sourceCanvas.height;
-  const ctx = sourceCanvas.getContext("2d", {willReadFrequently:true});
-  const imgData = ctx.getImageData(0, 0, w, h);
-  const data = imgData.data;
+  const ctx = sourceCanvas.getContext("2d", {willReadFrequently: true});
+  const data = ctx.getImageData(0, 0, w, h).data;
   const samples = [];
-  for (let y = 0; y < h; y += 2) {
-    for (let x = 0; x < w; x += 2) {
+  const step = Math.max(1, Math.floor(Math.max(w, h) / 400));
+  for (let y = 0; y < h; y += step)
+    for (let x = 0; x < w; x += step) {
       const i = (y * w + x) * 4;
-      const a = data[i + 3];
-      if (a >= 128) samples.push([data[i], data[i+1], data[i+2]]);
+      if (data[i + 3] >= 128) samples.push([data[i], data[i+1], data[i+2]]);
     }
-  }
-  if (samples.length === 0) return [];
+  if (!samples.length) return [];
   const clusters = kmeans(samples, SUGGEST_COUNT);
   const suggestions = [];
   for (const centroid of clusters) {
@@ -536,13 +1343,11 @@ function generateSuggestedPalette(sourceCanvas) {
     let best = null, bestDist = Infinity;
     for (const gp of gamePalette) {
       const [pr, pg, pb] = hexToRgb(gp.color);
-      const dr = r - pr, dg = g - pg, db = b - pb;
-      const dist = dr*dr + dg*dg + db*db;
+      const dist = (r-pr)**2 + (g-pg)**2 + (b-pb)**2;
       if (dist < bestDist) { bestDist = dist; best = gp; }
     }
-    if (best && !suggestions.some(s => s.code === best.code)) {
+    if (best && !suggestions.some(s => s.code === best.code))
       suggestions.push({...best, matchScore: Math.max(0, 100 - Math.sqrt(bestDist) / 2.55).toFixed(0)});
-    }
     if (suggestions.length >= SUGGEST_COUNT) break;
   }
   return suggestions;
@@ -562,19 +1367,17 @@ function kmeans(points, k, maxIter = 10) {
       let best = 0, bestDist = Infinity;
       for (let i = 0; i < k; i++) {
         const c = centroids[i];
-        const dr = p[0] - c[0], dg = p[1] - c[1], db = p[2] - c[2];
-        const dist = dr*dr + dg*dg + db*db;
+        const dist = (p[0]-c[0])**2 + (p[1]-c[1])**2 + (p[2]-c[2])**2;
         if (dist < bestDist) { bestDist = dist; best = i; }
       }
       clusters[best].push(p);
     }
     let moved = false;
     for (let i = 0; i < k; i++) {
-      if (clusters[i].length === 0) continue;
+      if (!clusters[i].length) continue;
       const sum = clusters[i].reduce((a, p) => [a[0]+p[0], a[1]+p[1], a[2]+p[2]], [0,0,0]);
       const newC = [sum[0]/clusters[i].length, sum[1]/clusters[i].length, sum[2]/clusters[i].length];
-      const dr = newC[0] - centroids[i][0], dg = newC[1] - centroids[i][1], db = newC[2] - centroids[i][2];
-      if (dr*dr + dg*dg + db*db > 1) moved = true;
+      if ((newC[0]-centroids[i][0])**2 + (newC[1]-centroids[i][1])**2 + (newC[2]-centroids[i][2])**2 > 1) moved = true;
       centroids[i] = newC;
     }
     if (!moved) break;
@@ -586,39 +1389,26 @@ function renderSuggestedPalette() {
   const grid = $("suggestedGrid");
   const hint = $("suggestedHint");
   const applyBtn = $("applySuggested");
-  
   if (suggestedPalette.length === 0) {
-    grid.style.display = "none";
-    applyBtn.style.display = "none";
-    hint.style.display = "block";
+    grid.style.display = "none"; applyBtn.style.display = "none"; hint.style.display = "inline";
     return;
   }
-  
-  grid.style.display = "grid";
-  applyBtn.style.display = "inline-block";
-  hint.style.display = "none";
-  
+  grid.style.display = "grid"; applyBtn.style.display = "inline-block"; hint.style.display = "none";
   grid.innerHTML = suggestedPalette.map((b) => {
     const isActive = activePalette.some(a => a.code === b.code);
     let cls = "palette-item suggested";
     if (isActive) cls += " in-active";
     return `
-      <div class="${cls}" data-code="${b.code}" draggable="true" title="${b.name} (${b.category}) — Match: ${b.matchScore}%">
+      <div class="${cls}" data-code="${b.code}" draggable="true" title="${b.name} (${b.category}) — ${b.matchScore}% match">
         <div class="swatch" style="--c:${b.color}"></div>
         <div class="name">${b.name}</div>
         <div class="cat">${b.category}</div>
         <div class="match-score">${b.matchScore}% match</div>
-      </div>
-    `;
+      </div>`;
   }).join("");
-  
   grid.querySelectorAll(".palette-item").forEach(el => {
-    el.onclick = (e) => { if (!el.classList.contains("dragging")) addToActivePalette(el.dataset.code); };
-    el.ondragstart = e => { 
-      el.classList.add("dragging"); 
-      e.dataTransfer.setData("text/plain", el.dataset.code);
-      e.dataTransfer.effectAllowed = "copy";
-    };
+    el.onclick = () => { if (!el.classList.contains("dragging")) addToActivePalette(el.dataset.code); };
+    el.ondragstart = e => { el.classList.add("dragging"); e.dataTransfer.setData("text/plain", el.dataset.code); e.dataTransfer.effectAllowed = "copy"; };
     el.ondragend = () => el.classList.remove("dragging");
   });
 }
@@ -633,154 +1423,151 @@ $("applySuggested").onclick = () => {
     }
   }
   if (added > 0) {
-    renderPaletteBar();
-    renderPaletteGrid();
-    renderSuggestedPalette();
-    process();
-    showToast(`Added ${added} suggested materials`, false);
-  } else {
-    showToast("No new materials to add (palette full or already added)", true);
-  }
+    renderPaletteBar(); renderPaletteGrid(); renderSuggestedPalette(); process();
+    showToast(`Added ${added} suggested materials`);
+  } else showToast("Nothing new to add (palette full or all added)", true);
 };
 
-// --- Image / Text source ---
-function renderSource() {
-  if (img) {
-    srcCanvas.width = img.naturalWidth; srcCanvas.height = img.naturalHeight;
-    srcCtx.clearRect(0,0,srcCanvas.width,srcCanvas.height);
-    srcCtx.drawImage(img,0,0);
-    return;
-  }
-  const text = $("textInput").value || " ";
-  const fontFam = $("fontSelect").value;
-  const fs = 100;
-  srcCtx.font = `bold ${fs}px ${fontFam}`;
-  const tw = Math.ceil(srcCtx.measureText(text).width) || 1;
-  srcCanvas.width = tw + 20; srcCanvas.height = Math.ceil(fs * 1.5);
-  srcCtx.clearRect(0,0,srcCanvas.width,srcCanvas.height);
-  srcCtx.font = `bold ${fs}px ${fontFam}`;
-  srcCtx.textBaseline = "middle";
-  srcCtx.fillStyle = $("textColor").value;
-  srcCtx.fillText(text, 10, srcCanvas.height/2);
+/* =========================================================
+   COLOR UTILS + QUANTIZATION
+   ========================================================= */
+function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [n>>16&255, n>>8&255, n&255]; }
+function srgbToLinear(v) { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+function rgbToLab([r, g, b]) {
+  r = srgbToLinear(r); g = srgbToLinear(g); b = srgbToLinear(b);
+  let x = (0.4124*r + 0.3576*g + 0.1805*b) / 0.95047;
+  let y = (0.2126*r + 0.7152*g + 0.0722*b);
+  let z = (0.0193*r + 0.1192*g + 0.9505*b) / 1.08883;
+  const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787*t + 16/116;
+  x = f(x); y = f(y); z = f(z);
+  return [116*y - 16, 500*(x - y), 200*(y - z)];
 }
 
-// --- Color utilities ---
-function hexToRgb(h) { const n = parseInt(h.slice(1),16); return [n>>16&255, n>>8&255, n&255]; }
-function srgbToLinear(v) { v/=255; return v<=0.04045 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); }
-function rgbToLab([r,g,b]) {
-  r=srgbToLinear(r); g=srgbToLinear(g); b=srgbToLinear(b);
-  let x=(0.4124*r+0.3576*g+0.1805*b)/0.95047;
-  let y=(0.2126*r+0.7152*g+0.0722*b);
-  let z=(0.0193*r+0.1192*g+0.9505*b)/1.08883;
-  const f=t=> t>0.008856 ? Math.cbrt(t) : 7.787*t+16/116;
-  x=f(x); y=f(y); z=f(z);
-  return [116*y-16, 500*(x-y), 200*(y-z)];
-}
-
-let palRgb, palLab;
+let palRgb, palLab, pal = [];
 function rebuildPaletteCache() {
   palRgb = activePalette.map(p => hexToRgb(p.color));
   palLab = palRgb.map(rgbToLab);
 }
-function nearest(r,g,b,useLab) {
-  let bi=0, bd=Infinity;
+function nearest(r, g, b, useLab) {
+  let bi = 0, bd = Infinity;
   if (useLab) {
-    const [L,a,bb] = rgbToLab([r,g,b]);
-    for (let i=0;i<palLab.length;i++) {
-      const p=palLab[i];
-      const d=(L-p[0])**2+(a-p[1])**2+(bb-p[2])**2;
-      if (d<bd) { bd=d; bi=i; }
+    const [L, a, bb] = rgbToLab([r, g, b]);
+    for (let i = 0; i < palLab.length; i++) {
+      const p = palLab[i];
+      const d = (L-p[0])**2 + (a-p[1])**2 + (bb-p[2])**2;
+      if (d < bd) { bd = d; bi = i; }
     }
   } else {
-    for (let i=0;i<palRgb.length;i++) {
-      const p=palRgb[i];
-      const d=0.30*(r-p[0])**2+0.59*(g-p[1])**2+0.11*(b-p[2])**2;
-      if (d<bd) { bd=d; bi=i; }
+    for (let i = 0; i < palRgb.length; i++) {
+      const p = palRgb[i];
+      const d = 0.30*(r-p[0])**2 + 0.59*(g-p[1])**2 + 0.11*(b-p[2])**2;
+      if (d < bd) { bd = d; bi = i; }
     }
   }
   return bi;
 }
 
 const BAYER4 = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
-const srcCanvas = document.createElement("canvas");
-const srcCtx = srcCanvas.getContext("2d", {willReadFrequently:true});
 
-// --- Main processing ---
+/* =========================================================
+   MAIN PROCESSING (crop-aware, smoothing-aware)
+   ========================================================= */
+function configureSmoothing(ctx, tw, th) {
+  const a = +$("aliasSlider").value || 0;
+  const ratio = Math.max(crop.w / tw, crop.h / th); // downscale factor
+  ctx.imageSmoothingEnabled = a > 0;
+  ctx.imageSmoothingQuality = a > 60 ? "high" : (a > 25 ? "medium" : "low");
+  const blurPx = a > 0 ? (a / 100) * Math.min(ratio * 0.6, 5) : 0;
+  ctx.filter = blurPx >= 0.25 ? `blur(${blurPx.toFixed(2)}px)` : "none";
+}
+
 function process() {
-  if (activePalette.length === 0) {
-    $("statsCards").innerHTML = '<div class="hint" style="text-align:center;padding:20px">Add materials to the palette to see preview</div>';
+  const hasPreviewSpace = activePalette.length > 0 && hasSource();
+  $("previewEmpty").style.display = hasPreviewSpace ? "none" : "flex";
+  $("stagePreview").style.display = hasPreviewSpace ? "inline-block" : "none";
+  if (!hasPreviewSpace) {
+    $("statsCards").innerHTML = "";
     $("stats").textContent = "";
+    $("previewTag").textContent = "—";
+    result = null;
     return;
   }
   rebuildPaletteCache();
   renderSource();
 
-  const sw = srcCanvas.width, sh = srcCanvas.height;
   const bx = Math.max(1, Math.min(8, +$("blocksX").value || 1));
   const by = Math.max(1, Math.min(8, +$("blocksY").value || 1));
   const tw = bx * VOX, th = by * VOX;
   $("sizeInfo").textContent = `${tw}×${th}`;
+  $("previewTag").textContent = `${bx}×${by} blocks = ${tw}×${th} px`;
+
+  // source rect = current crop
+  const sxr = crop.x, syr = crop.y, sww = crop.w, shh = crop.h;
 
   const fit = $("fitMode").value;
   const tmp = document.createElement("canvas");
   tmp.width = tw; tmp.height = th;
-  const tctx = tmp.getContext("2d", {willReadFrequently:true});
+  const tctx = tmp.getContext("2d", {willReadFrequently: true});
 
   if ($("bgMode").value === "first" && activePalette[0]) {
-    tctx.fillStyle = activePalette[0].color; tctx.fillRect(0,0,tw,th);
+    tctx.fillStyle = activePalette[0].color;
+    tctx.fillRect(0, 0, tw, th);
   }
 
-  let dw, dh, dx, dy, sx=0, sy=0, sww=sw, shh=sh;
-  const sAr = sw/sh, tAr = tw/th;
-  if (fit === "stretch") { dw=tw; dh=th; dx=0; dy=0; }
-  else if (fit === "contain") {
-    if (sAr > tAr) { dw=tw; dh=tw/sAr; } else { dh=th; dw=th*sAr; }
-    dx=(tw-dw)/2; dy=(th-dh)/2;
-  } else {
-    if (sAr > tAr) { shh=sw/tAr; sy=(sh-shh)/2; } else { sww=sh*tAr; sx=(sw-sww)/2; }
-    dw=tw; dh=th; dx=0; dy=0;
+  let dw, dh, dx, dy;
+  const sAr = sww / shh, tAr = tw / th;
+  configureSmoothing(tctx, tw, th);
+  if (fit === "stretch") {
+    tctx.drawImage(srcCanvas, sxr, syr, sww, shh, 0, 0, tw, th);
+  } else if (fit === "contain") {
+    if (sAr > tAr) { dw = tw; dh = tw / sAr; } else { dh = th; dw = th * sAr; }
+    dx = (tw - dw) / 2; dy = (th - dh) / 2;
+    tctx.drawImage(srcCanvas, sxr, syr, sww, shh, dx, dy, dw, dh);
+  } else { // cover
+    let csx = sxr, csy = syr, cw = sww, ch = shh;
+    if (sAr > tAr) { cw = shh * tAr; csx = sxr + (sww - cw) / 2; }
+    else { ch = sww / tAr; csy = syr + (shh - ch) / 2; }
+    tctx.drawImage(srcCanvas, csx, csy, cw, ch, 0, 0, tw, th);
   }
-  tctx.imageSmoothingEnabled = true;
-  tctx.imageSmoothingQuality = "high";
-  tctx.drawImage(srcCanvas, sx, sy, sww, shh, dx, dy, dw, dh);
+  tctx.filter = "none";
 
-  const src = tctx.getImageData(0,0,tw,th).data;
+  const src = tctx.getImageData(0, 0, tw, th).data;
   const mode = $("dither").value;
   const useLab = $("colorspace").value === "lab";
-  const pal = palRgb.map(p => p.slice());
-  const out = new Uint8Array(tw*th);
-  const buf = new Float32Array(tw*th*3);
+  pal = palRgb.map(p => p.slice());
+  const out = new Uint8Array(tw * th);
+  const buf = new Float32Array(tw * th * 3);
 
-  for (let i=0;i<tw*th;i++) {
-    buf[i*3]=src[i*4]; buf[i*3+1]=src[i*4+1]; buf[i*3+2]=src[i*4+2];
+  for (let i = 0; i < tw * th; i++) {
+    buf[i*3] = src[i*4]; buf[i*3+1] = src[i*4+1]; buf[i*3+2] = src[i*4+2];
   }
-  const clamp = v => v<0?0:(v>255?255:v);
-  const push = (x,y,er,eg,eb,f) => {
-    if (x<0||x>=tw||y<0||y>=th) return;
-    const j=(y*tw+x)*3;
-    buf[j]+=er*f; buf[j+1]+=eg*f; buf[j+2]+=eb*f;
+  const clampv = v => v < 0 ? 0 : (v > 255 ? 255 : v);
+  const push = (x, y, er, eg, eb, f) => {
+    if (x < 0 || x >= tw || y < 0 || y >= th) return;
+    const j = (y * tw + x) * 3;
+    buf[j] += er * f; buf[j+1] += eg * f; buf[j+2] += eb * f;
   };
 
-  for (let y=0;y<th;y++) {
-    for (let x=0;x<tw;x++) {
-      const i=(y*tw+x)*3;
-      let r=buf[i], g=buf[i+1], b=buf[i+2];
+  for (let y = 0; y < th; y++) {
+    for (let x = 0; x < tw; x++) {
+      const i = (y * tw + x) * 3;
+      let r = buf[i], g = buf[i+1], b = buf[i+2];
       if (mode === "bayer") {
-        const t=(BAYER4[(y%4)*4+(x%4)]+0.5)/16*255-127.5;
-        r=clamp(r+t); g=clamp(g+t); b=clamp(b+t);
+        const t = (BAYER4[(y % 4) * 4 + (x % 4)] + 0.5) / 16 * 255 - 127.5;
+        r = clampv(r + t); g = clampv(g + t); b = clampv(b + t);
       }
-      const qi = nearest(r,g,b,useLab);
-      out[y*tw+x] = qi;
+      const qi = nearest(r, g, b, useLab);
+      out[y * tw + x] = qi;
       const q = pal[qi];
       if (mode === "floyd") {
-        const er=r-q[0], eg=g-q[1], eb=b-q[2];
-        push(x+1,y,er,eg,eb,7/16); push(x-1,y+1,er,eg,eb,3/16);
-        push(x,y+1,er,eg,eb,5/16); push(x+1,y+1,er,eg,eb,1/16);
+        const er = r - q[0], eg = g - q[1], eb = b - q[2];
+        push(x+1, y, er, eg, eb, 7/16); push(x-1, y+1, er, eg, eb, 3/16);
+        push(x, y+1, er, eg, eb, 5/16); push(x+1, y+1, er, eg, eb, 1/16);
       } else if (mode === "atkinson") {
-        const er=r-q[0], eg=g-q[1], eb=b-q[2], f=1/8;
-        push(x+1,y,er,eg,eb,f); push(x+2,y,er,eg,eb,f);
-        push(x-1,y+1,er,eg,eb,f); push(x,y+1,er,eg,eb,f);
-        push(x+1,y+1,er,eg,eb,f); push(x,y+2,er,eg,eb,f);
+        const er = r - q[0], eg = g - q[1], eb = b - q[2], f = 1/8;
+        push(x+1, y, er, eg, eb, f); push(x+2, y, er, eg, eb, f);
+        push(x-1, y+1, er, eg, eb, f); push(x, y+1, er, eg, eb, f);
+        push(x+1, y+1, er, eg, eb, f); push(x, y+2, er, eg, eb, f);
       }
     }
   }
@@ -788,101 +1575,121 @@ function process() {
   const pv = $("preview");
   pv.width = tw; pv.height = th;
   const pctx = pv.getContext("2d");
-  const imgData = pctx.createImageData(tw,th);
-  for (let i=0;i<tw*th;i++) {
-    const a = src[i*4+3];
+  const imgData = pctx.createImageData(tw, th);
+  for (let i = 0; i < tw * th; i++) {
+    const a = src[i*4 + 3];
     if (a < 128) { imgData.data[i*4+3] = 0; out[i] = 255; }
-    else { const c = pal[out[i]]; imgData.data[i*4]=c[0]; imgData.data[i*4+1]=c[1]; imgData.data[i*4+2]=c[2]; imgData.data[i*4+3]=255; }
+    else {
+      const c = pal[out[i]];
+      imgData.data[i*4] = c[0]; imgData.data[i*4+1] = c[1]; imgData.data[i*4+2] = c[2]; imgData.data[i*4+3] = 255;
+    }
   }
-  pctx.putImageData(imgData,0,0);
+  pctx.putImageData(imgData, 0, 0);
 
-  drawGrid(tw,th,bx,by);
-  drawOriginalOverlay(tw,th,bx,by);
-  result = {w:tw,h:th,bx,by,data:out};
-  showStats(tw,th,bx,by,out);
+  for (const c of [$("gridOverlay"), $("voxelOverlay"), $("originalOverlay")]) {
+    c.width = tw; c.height = th;
+  }
+  drawGrid(tw, th, bx, by);
+  drawVoxelGrid(tw, th, bx, by);
+  drawOriginalOverlay();
+  result = {w: tw, h: th, bx, by, data: out};
+  showStats(tw, th, bx, by, out);
 }
 
-function drawGrid(tw,th,bx,by) {
+function drawGrid(tw, th, bx, by) {
   const go = $("gridOverlay");
-  go.width = tw; go.height = th;
   const g = go.getContext("2d");
-  g.clearRect(0,0,tw,th);
+  g.clearRect(0, 0, tw, th);
   if (!$("showGrid").checked) return;
-  g.strokeStyle = "rgba(255,80,80,0.55)";
-  g.lineWidth = 0.15;
+  g.strokeStyle = "rgba(255,80,80,0.65)";
+  g.lineWidth = 0.5;
   g.beginPath();
-  for (let x=0;x<=bx;x++) { g.moveTo(x*VOX+0.5,0); g.lineTo(x*VOX+0.5,th); }
-  for (let y=0;y<=by;y++) { g.moveTo(0,y*VOX+0.5); g.lineTo(tw,y*VOX+0.5); }
+  for (let x = 0; x <= bx; x++) { g.moveTo(x*VOX + .5, 0); g.lineTo(x*VOX + .5, th); }
+  for (let y = 0; y <= by; y++) { g.moveTo(0, y*VOX + .5); g.lineTo(tw, y*VOX + .5); }
   g.stroke();
 }
 
-function drawOriginalOverlay(tw,th,bx,by) {
+function drawVoxelGrid(tw, th, bx, by) {
+  const go = $("voxelOverlay");
+  const g = go.getContext("2d");
+  g.clearRect(0, 0, tw, th);
+  if (!$("showVoxelGrid").checked) return;
+  g.strokeStyle = "rgba(255,255,255,0.18)";
+  g.lineWidth = 0.25;
+  g.beginPath();
+  for (let x = 0; x <= tw; x++) { g.moveTo(x + .5, 0); g.lineTo(x + .5, th); }
+  for (let y = 0; y <= th; y++) { g.moveTo(0, y + .5); g.lineTo(tw, y + .5); }
+  g.stroke();
+}
+
+function drawOriginalOverlay() {
   const ov = $("originalOverlay");
-  ov.width = tw; ov.height = th;
+  const tw = ov.width, th = ov.height;
   const octx = ov.getContext("2d");
-  octx.clearRect(0,0,tw,th);
-  if (!originalImg) return;
+  octx.clearRect(0, 0, tw, th);
   const opacity = +$("overlayOpacity").value / 100;
-  if (opacity === 0) return;
+  $("overlayOpacityVal").textContent = `${$("overlayOpacity").value}%`;
+  if (opacity === 0 || !hasSource()) return;
   octx.globalAlpha = opacity;
   octx.imageSmoothingEnabled = false;
-  // Draw original scaled to fit
-  const sAr = originalImg.naturalWidth / originalImg.naturalHeight;
-  const tAr = tw / th;
+  const sAr = crop.w / crop.h, tAr = tw / th;
   let dw, dh, dx, dy;
   if (sAr > tAr) { dw = tw; dh = tw / sAr; } else { dh = th; dw = th * sAr; }
   dx = (tw - dw) / 2; dy = (th - dh) / 2;
-  octx.drawImage(originalImg, dx, dy, dw, dh);
+  octx.drawImage(srcCanvas, crop.x, crop.y, crop.w, crop.h, dx, dy, dw, dh);
   octx.globalAlpha = 1;
 }
 
-function showStats(w,h,bx,by,data) {
-  // Cards
+$("overlayOpacity").oninput = drawOriginalOverlay;
+$("aliasSlider").addEventListener("input", () => {
+  $("aliasVal").textContent = `${$("aliasSlider").value}%`;
+  process();
+});
+
+function showStats(w, h, bx, by, data) {
   const cards = [];
-  const lines = [`Export: ${w}×${h} px = ${bx}×${by} blocks (16×16 voxels each)`];
-  
-  for (let byy=0;byy<by;byy++) {
-    for (let bxx=0;bxx<bx;bxx++) {
+  const lines = [`Export: ${w}×${h} px = ${bx}×${by} blocks (16×16 voxels each)`,
+                 `Crop: x=${crop.x} y=${crop.y} w=${crop.w} h=${crop.h} (source px)`,
+                 `Smoothing: ${$("aliasSlider").value}%`];
+  for (let byy = 0; byy < by; byy++) {
+    for (let bxx = 0; bxx < bx; bxx++) {
       const counts = {};
-      for (let y=byy*VOX;y<(byy+1)*VOX;y++)
-        for (let x=bxx*VOX;x<(bxx+1)*VOX;x++) {
-          const idx = data[y*w+x];
+      for (let y = byy*VOX; y < (byy+1)*VOX; y++)
+        for (let x = bxx*VOX; x < (bxx+1)*VOX; x++) {
+          const idx = data[y*w + x];
           if (idx === 255) continue;
           const m = activePalette[idx]?.name || `Mat${idx}`;
-          counts[m] = (counts[m]||0)+1;
+          counts[m] = (counts[m] || 0) + 1;
         }
       const used = Object.keys(counts).length;
       const total = VOX * VOX;
-      const filled = Object.values(counts).reduce((a,b)=>a+b,0);
+      const filled = Object.values(counts).reduce((a, b) => a + b, 0);
       const empty = total - filled;
-      const line = `Block (${bxx+1},${byy+1}): ${used} mats — ${filled}/${total} voxels` +
+      lines.push(`Block (${bxx+1},${byy+1}): ${used} mats — ${filled}/${total} voxels` +
         (empty ? ` (${empty} empty)` : "") + " — " +
-        Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`${n}×${v}`).join(", ");
-      lines.push(line);
-      
-      // Generate thumbnail for this block
+        Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([n, v]) => `${n}×${v}`).join(", "));
+
       const thumbCanvas = document.createElement("canvas");
       thumbCanvas.width = VOX; thumbCanvas.height = VOX;
       const tctx = thumbCanvas.getContext("2d");
       const timg = tctx.createImageData(VOX, VOX);
-      for (let y=0;y<VOX;y++) for (let x=0;x<VOX;x++) {
-        const idx = data[(byy*VOX+y)*w + (bxx*VOX+x)];
-        if (idx === 255) { timg.data[(y*VOX+x)*4+3] = 0; }
-        else { const c = pal[idx]; timg.data[(y*VOX+x)*4]=c[0]; timg.data[(y*VOX+x)*4+1]=c[1]; timg.data[(y*VOX+x)*4+2]=c[2]; timg.data[(y*VOX+x)*4+3]=255; }
+      for (let y = 0; y < VOX; y++) for (let x = 0; x < VOX; x++) {
+        const idx = data[(byy*VOX + y)*w + (bxx*VOX + x)];
+        if (idx === 255) timg.data[(y*VOX + x)*4 + 3] = 0;
+        else {
+          const c = pal[idx];
+          timg.data[(y*VOX + x)*4] = c[0]; timg.data[(y*VOX + x)*4+1] = c[1];
+          timg.data[(y*VOX + x)*4+2] = c[2]; timg.data[(y*VOX + x)*4+3] = 255;
+        }
       }
       tctx.putImageData(timg, 0, 0);
-      const thumbDataUrl = thumbCanvas.toDataURL("image/png");
-      
-      cards.push({x:bxx+1, y:byy+1, used, filled, total, empty, counts, thumb: thumbDataUrl});
+      cards.push({x: bxx+1, y: byy+1, used, filled, total, empty, counts, thumb: thumbCanvas.toDataURL("image/png")});
     }
   }
-  
   $("stats").textContent = lines.join("\n");
-  result.stats = lines.slice(1);
-  
-  // Render cards
-  const container = $("statsCards");
-  container.innerHTML = cards.map(c => `
+  if (result) result.stats = lines.slice(3);
+
+  $("statsCards").innerHTML = cards.map(c => `
     <div class="stat-card">
       <div class="stat-card-header">
         <img class="stat-card-thumb" src="${c.thumb}" alt="Block ${c.x},${c.y}">
@@ -892,19 +1699,20 @@ function showStats(w,h,bx,by,data) {
         </div>
       </div>
       <div class="stat-card-materials">
-        ${Object.entries(c.counts).sort((a,b)=>b[1]-a[1]).map(([name, vox]) => {
+        ${Object.entries(c.counts).sort((a, b) => b[1] - a[1]).map(([name, vox]) => {
           const p = activePalette.find(ap => ap.name === name);
           const color = p ? p.color : "#888";
           const pct = ((vox / c.total) * 100).toFixed(1);
-          return `<span class="stat-card-material" style="--c:${color}"><i style="background:${color}"></i>${name} ${vox} (${pct}%)</span>`;
+          return `<span class="stat-card-material"><i style="background:${color}"></i>${name} ${vox} <span class="pct">(${pct}%)</span></span>`;
         }).join("")}
-        ${c.empty ? `<span class="stat-card-material" style="--c:#333"><i style="background:#333"></i>Empty ${c.empty} (${((c.empty/c.total)*100).toFixed(1)}%)</span>` : ""}
+        ${c.empty ? `<span class="stat-card-material"><i style="background:#333"></i>Empty ${c.empty}</span>` : ""}
       </div>
-    </div>
-  `).join("");
+    </div>`).join("");
 }
 
-// --- Export ---
+/* =========================================================
+   EXPORT
+   ========================================================= */
 function download(name, blob) {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob); a.download = name;
@@ -913,124 +1721,114 @@ function download(name, blob) {
 }
 
 $("exportPng").onclick = () => {
+  if (!result) return showToast("Nothing to export yet", true);
   const pv = $("preview");
-  pv.toBlob(b => download(`chiselmage_${pv.width}x${pv.height}.png`, b), "image/png");
+  pv.toBlob(b => download(`chiselmage_${result.bx}x${result.by}blocks_${pv.width}x${pv.height}.png`, b), "image/png");
 };
 
 $("exportJson").onclick = () => {
   if (!result) return;
   const json = {
-    version: "1.2.2",
-    grid: {w:result.w, h:result.h, voxel:VOX, blocksX:result.bx, blocksY:result.by},
-    palette: activePalette.map(p => ({name:p.name, color:p.color, code:p.code})),
+    version: "2.1.0",
+    grid: {w: result.w, h: result.h, voxel: VOX, blocksX: result.bx, blocksY: result.by},
+    crop: {...crop},
+    smoothingPct: +$("aliasSlider").value,
+    palette: activePalette.map(p => ({name: p.name, color: p.color, code: p.code})),
     blockStats: result.stats,
     pixels: Array.from(result.data)
   };
-  download("chisel-plan.json", new Blob([JSON.stringify(json, null, 2)], {type:"application/json"}));
+  download("chisel-plan.json", new Blob([JSON.stringify(json, null, 2)], {type: "application/json"}));
 };
 
 $("copyStats").onclick = () => {
   if (!result) return;
   navigator.clipboard.writeText($("stats").textContent).then(() => {
     const btn = $("copyStats");
-    btn.textContent = "Copied!";
-    setTimeout(() => btn.textContent = "📋 Copy Raw Stats", 1500);
+    btn.textContent = "✓ Copied";
+    setTimeout(() => btn.textContent = "📋 Copy Stats", 1500);
   });
 };
 
-$("resetAll").onclick = () => {
-  if (!confirm("Reset everything? This clears the palette and settings.")) return;
-  activePalette = [];
-  suggestedPalette = [];
+function resetAllState() {
+  activePalette = []; suggestedPalette = [];
   $("fileInput").value = "";
   $("textInput").value = "VS";
   $("blocksX").value = 2; $("blocksY").value = 1;
   $("fitMode").value = "cover"; $("bgMode").value = "transparent";
   $("dither").value = "bayer"; $("colorspace").value = "rgb";
-  $("showGrid").checked = true;
+  $("aliasSlider").value = 50; $("aliasVal").textContent = "50%";
+  $("showGrid").checked = true; $("showVoxelGrid").checked = false;
   $("overlayOpacity").value = 0;
-  $("overlayOpacityVal").textContent = "0%";
-  img = null; originalImg = null;
-  renderPaletteBar();
-  renderPaletteGrid();
-  renderSuggestedPalette();
+  img = null; result = null;
+  renderPaletteBar(); renderPaletteGrid(); renderSuggestedPalette();
+  showTab("image");
   process();
+  goStep(1);
+}
+
+$("resetAll").onclick = () => {
+  if (!confirm("Reset everything? This clears the palette and settings.")) return;
+  resetAllState();
 };
 
-// --- Events ---
-$("fileInput").onchange = e => {
-  const f = e.target.files[0]; if (!f) return;
-  const url = URL.createObjectURL(f);
-  const im = new Image();
-  im.onload = () => { 
-    img = im; originalImg = im;
-    // Generate suggested palette from the original image
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = im.naturalWidth;
-    tempCanvas.height = im.naturalHeight;
-    const tctx = tempCanvas.getContext("2d");
-    tctx.drawImage(im, 0, 0);
-    suggestedPalette = generateSuggestedPalette(tempCanvas);
-    // Auto-apply suggestions as default palette (up to 16)
-    activePalette = [];
-    for (const s of suggestedPalette) {
-      if (activePalette.length >= MAX_MATERIALS) break;
-      activePalette.push({...s, custom: false, matchScore: undefined});
-    }
-    renderPaletteBar();
-    renderSuggestedPalette();
-    renderPaletteGrid();
-    process(); // Now process with palette populated
-    showToast(`Auto-loaded ${activePalette.length} suggested materials`, false);
-    URL.revokeObjectURL(url); 
-  };
-  im.src = url;
-};
-
-$("overlayOpacity").oninput = e => {
-  $("overlayOpacityVal").textContent = e.target.value + "%";
-  drawOriginalOverlay($("preview").width, $("preview").height, result?.bx||1, result?.by||1);
-};
-
+/* =========================================================
+   GRID HELPERS
+   ========================================================= */
 $("suggestRatio").onclick = () => {
-  if (!img && !originalImg) return showToast("Load an image first", true);
-  const source = img || originalImg;
-  const ar = source.naturalWidth / source.naturalHeight;
-  // Find best bx,by (1-8) that matches aspect ratio
-  let best = {bx:2, by:1, diff:Infinity};
-  for (let bx=1; bx<=8; bx++) {
-    for (let by=1; by<=8; by++) {
-      const targetAr = bx / by;
-      const diff = Math.abs(ar - targetAr);
-      if (diff < best.diff) { best = {bx, by, diff}; }
+  if (!hasSource()) return showToast("Load an image first", true);
+  const ar = crop.w / crop.h;
+  let best = {bx: 2, by: 1, diff: Infinity};
+  for (let bx = 1; bx <= 8; bx++)
+    for (let by = 1; by <= 8; by++) {
+      const diff = Math.abs(Math.log(ar / (bx / by)));
+      if (diff < best.diff) best = {bx, by, diff};
     }
-  }
-  $("blocksX").value = best.bx;
-  $("blocksY").value = best.by;
-  process();
-  showToast(`Suggested ${best.bx}×${best.by} blocks (image ratio: ${ar.toFixed(2)})`, false);
+  $("blocksX").value = best.bx; $("blocksY").value = best.by;
+  onGridChange();
+  showToast(`Suggested ${best.bx}×${best.by} blocks (crop ratio ${ar.toFixed(2)})`);
 };
 
-["textInput","fontSelect","textColor","blocksX","blocksY","fitMode","bgMode","dither","colorspace"]
-  .forEach(id => $(id).addEventListener("input", () => {
-    if (["textInput","fontSelect","textColor"].includes(id)) { img = null; originalImg = null; }
-    process();
-  }));
+const PRESETS = [[1,1],[2,1],[2,2],[3,2],[4,2],[4,4],[6,4],[8,8]];
+$("gridPresets").innerHTML = PRESETS.map(([x, y]) =>
+  `<button type="button" data-x="${x}" data-y="${y}">${x}×${y}</button>`).join("");
+$("gridPresets").querySelectorAll("button").forEach(btn => {
+  btn.onclick = () => { $("blocksX").value = btn.dataset.x; $("blocksY").value = btn.dataset.y; onGridChange(); };
+});
 
-function showToast(msg, isError=false) {
+function onGridChange() {
+  $("ratioLabel").textContent = `${+$("blocksX").value || 1}:${+$("blocksY").value || 1}`;
+  if (hasSource() && ratioLocked()) cropToRatio();
+  else { updateCropUI(); process(); }
+}
+$("blocksX").addEventListener("input", onGridChange);
+$("blocksY").addEventListener("input", onGridChange);
+
+["textInput", "fontSelect", "textColor", "customFont"].forEach(id => {
+  $(id).addEventListener("input", onTextParamChange);
+  $(id).addEventListener("change", onTextParamChange);
+});
+function onTextParamChange() {
+  $("customFontWrap").style.display = $("fontSelect").value === "__custom" ? "block" : "none";
+  if (usingText) { img = null; renderSource(); }
+  process();
+}
+["fitMode", "bgMode", "dither", "colorspace"].forEach(id => $(id).addEventListener("change", process));
+
+function showToast(msg, isError = false) {
   const existing = document.querySelector(".toast");
   if (existing) existing.remove();
   const t = document.createElement("div");
   t.className = "toast" + (isError ? " error" : " success");
   t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 3000);
+  setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 350); }, 2800);
 }
 
-// --- Init ---
+/* ---------- init ---------- */
+renderRail();
+goStep(1);
 loadGamePalette().then(() => {
-  // No default palette — wait for image upload to auto-suggest
-  renderPaletteBar();
+  renderSource();
   process();
 });
 </script>
