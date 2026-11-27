@@ -605,11 +605,16 @@
       <label class="switch"><input type="checkbox" id="showVoxelGrid" onchange="process()"> Voxel grid</label>
     </div>
 
-    <div class="stats-cards" id="statsCards"></div>
-    <details>
-      <summary>Raw stats (copyable)</summary>
-      <pre id="stats"></pre>
-    </details>
+    <div class="stats-cards-wrap">
+      <details id="statsDetails" style="margin-top:12px">
+        <summary id="statsSummary">Per-block voxel stats</summary>
+        <div class="stats-cards" id="statsCards"></div>
+        <details>
+          <summary>Raw stats (copyable)</summary>
+          <pre id="stats"></pre>
+        </details>
+      </details>
+    </div>
     <div class="export-row">
       <button type="button" id="exportPng">⬇ Download PNG</button>
       <button type="button" class="secondary" id="exportJson">⬇ Download JSON</button>
@@ -673,6 +678,7 @@ function goStep(n) {
   document.querySelectorAll(".wiz-step").forEach(el =>
     el.classList.toggle("active", +el.dataset.step === currentStep));
   renderRail();
+  if (currentStep === 5) requestAnimationFrame(() => sizePreview());
   window.scrollTo({top: 0, behavior: "smooth"});
 }
 
@@ -1488,6 +1494,7 @@ function process() {
   if (!hasPreviewSpace) {
     $("statsCards").innerHTML = "";
     $("stats").textContent = "";
+    $("statsSummary").textContent = "Per-block voxel stats";
     $("previewTag").textContent = "—";
     result = null;
     return;
@@ -1593,8 +1600,26 @@ function process() {
   drawVoxelGrid(tw, th, bx, by);
   drawOriginalOverlay();
   result = {w: tw, h: th, bx, by, data: out};
+  sizePreview();
   showStats(tw, th, bx, by, out);
 }
+
+/* Explicit pixel sizing for the preview: the shrink-to-fit wrapper makes
+   percentage canvas sizing circular, so we compute the display width here. */
+function sizePreview() {
+  const pv = $("preview");
+  if (!result || !pv.width) return;
+  const shell = pv.parentElement;               // .stage-preview
+  const holder = shell.parentElement;           // .preview-shell
+  const avail = Math.max(0, holder.clientWidth - 28); // shell padding
+  const aspect = pv.width / pv.height;
+  const maxH = Math.max(240, window.innerHeight * 0.62);
+  let w = avail > 0 ? Math.min(avail, maxH * aspect) : 480; // fallback when not yet laid out
+  w = Math.max(w, Math.min(360, avail || 480));   // never smaller than 360px if there is room
+  pv.style.width = Math.round(w) + "px";
+  pv.style.height = "auto";
+}
+window.addEventListener("resize", () => sizePreview());
 
 function drawGrid(tw, th, bx, by) {
   const go = $("gridOverlay");
@@ -1688,6 +1713,12 @@ function showStats(w, h, bx, by, data) {
   }
   $("stats").textContent = lines.join("\n");
   if (result) result.stats = lines.slice(3);
+
+  // compact, collapsed summary for the stats drawer
+  const usedMats = new Set();
+  for (const i of data) if (i !== 255) usedMats.add(i);
+  $("statsSummary").textContent =
+    `Per-block voxel stats — ${bx}×${by} blocks · ${usedMats.size} materials used (click to expand)`;
 
   $("statsCards").innerHTML = cards.map(c => `
     <div class="stat-card">
