@@ -156,7 +156,7 @@
   .editor-shell {
     position: relative; margin-top: 10px;
     border: 1px solid var(--border2); border-radius: 11px;
-    background: repeating-conic-gradient(#17171d 0 25%, #101015 0 50%) 0 0/18px 18px;
+    background: repeating-conic-gradient(#343943 0 25%, #2b2f38 0 50%) 0 0/18px 18px;
     padding: 12px; display: flex; justify-content: center; outline: none;
     min-height: 140px;
   }
@@ -204,7 +204,10 @@
   /* ---------- Preview ---------- */
   .preview-shell {
     position: relative; border: 1px solid var(--border2); border-radius: 11px;
-    background: repeating-conic-gradient(#17171d 0 25%, #101015 0 50%) 0 0/18px 18px;
+    /* Mid-grey on purpose: against near-black, dark blocks (Obsidian, Basalt)
+       were indistinguishable from empty voxels, so outlines and dark materials
+       looked like they had not been applied at all. */
+    background: repeating-conic-gradient(#343943 0 25%, #2b2f38 0 50%) 0 0/18px 18px;
     padding: 14px; display: flex; justify-content: center;
   }
   .stage-preview { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
@@ -348,7 +351,7 @@
 <body>
 
 <header class="app-header">
-  <h1>⛏ VS ChiselMage <span class="ver">v2.2</span></h1>
+  <h1>⛏ VS ChiselMage <span class="ver">v2.4</span></h1>
   <div class="sub">Image / Text → <b>ChiselGraph</b> build guide · local processing · 1 block = <b>16×16 voxels</b></div>
 </header>
 
@@ -382,7 +385,7 @@
     <div id="textControls" style="display:none">
       <div class="row">
         <div class="grow"><label class="fl">Text</label><input type="text" id="textInput" value="VS" placeholder="Text to render"></div>
-        <div style="width:130px"><label class="fl">Color</label><input type="color" id="textColor" value="#f5f5f5"></div>
+        <div style="width:130px"><label class="fl">Color</label><input type="color" id="textColor" value="#c5c8c8"></div>
       </div>
       <div class="row">
         <div class="grow"><label class="fl">Font</label>
@@ -419,7 +422,33 @@
           <input type="text" id="customFont" placeholder="e.g. Bebas Neue, Press Start 2P">
         </div>
       </div>
-      <div class="hint">Custom fonts must be installed on your system (or loaded via CSS). The preview in step 2 shows exactly what will be chiseled.</div>
+      <div class="row">
+        <div class="grow"><label class="fl">Weight</label>
+          <select id="textWeight">
+            <option value="bold" selected>Bold</option>
+            <option value="900">Black</option>
+            <option value="600">Semi-bold</option>
+            <option value="normal">Regular</option>
+          </select>
+        </div>
+        <div class="grow"><label class="fl">Align</label>
+          <select id="textAlign">
+            <option value="center" selected>Centre</option>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="grow"><label class="fl">Outline</label>
+          <select id="textOutline">
+            <option value="none" selected>None</option>
+            <option value="1">1 voxel — best readability</option>
+          </select>
+        </div>
+        <div style="width:130px"><label class="fl">Outline colour</label><input type="color" id="textOutlineColor" value="#110a19"></div>
+      </div>
+      <div class="hint">Text is fitted to the block grid and rasterised straight into voxels, one voxel per pixel — no resampling, so stems stay sharp. A 1-voxel outline in a contrasting material is what makes chiselled lettering readable in game. Use a larger grid (4×2 or more) for long words.</div>
     </div>
 
     <div class="wiz-nav">
@@ -431,6 +460,8 @@
   <!-- ============ STEP 2 · CROP ============ -->
   <section class="card wiz-step" data-step="2">
     <h2><span class="num">2</span> <span id="cropStepTitle">Crop your image</span> <span class="tag">pixel-perfect selection</span></h2>
+
+    <div class="hint" id="textCropNote" style="display:none">Text is fitted to the block grid and rasterised straight into voxels, so there is nothing to crop. Set the grid in step 3 and the lettering in step 1 — this step only previews what fits.</div>
 
     <div class="editor-shell" id="editorShell" tabindex="0" aria-label="Crop editor — drag to select, arrow keys to nudge">
       <div class="editor-empty" id="editorEmpty">
@@ -500,21 +531,58 @@
           <option value="stretch">Stretch (distort, fill exactly)</option>
         </select>
       </div>
-      <div class="grow"><label class="fl">Background</label>
-        <select id="bgMode">
-          <option value="transparent" selected>Transparent (invisible in overlay)</option>
-          <option value="first">First palette color</option>
+      <div class="grow"><label class="fl">Sampling <span style="color:var(--dim)">(how a voxel gets its colour)</span></label>
+        <select id="sampleMode">
+          <option value="median" selected>Median — best for pixel art</option>
+          <option value="dominant">Dominant colour — fewest strays</option>
+          <option value="mean">Mean — photos</option>
+          <option value="nearest">Nearest — point sample</option>
         </select>
       </div>
     </div>
 
+    <div class="row" style="margin-top:8px">
+      <div class="grow"><label class="fl">Backdrop</label>
+        <select id="bgMode">
+          <option value="remove" selected>Remove detected background → empty voxels</option>
+          <option value="keep">Keep it — treat as a normal material</option>
+          <option value="first">Fill with first palette colour</option>
+        </select>
+      </div>
+      <div class="grow"><label class="fl">Background threshold <span id="bgTolVal" style="color:var(--dim)">auto</span></label>
+        <input type="range" id="bgTol" min="0" max="120" value="0">
+      </div>
+    </div>
+    <label class="switch" style="margin-top:8px">
+      <input type="checkbox" id="autoTrim" checked>
+      Auto-trim to content — drop empty margins before scaling (big detail win)
+    </label>
+
+    <div class="row" style="margin-top:8px">
+      <div class="grow"><label class="fl">Source pixel size <span style="color:var(--dim)">(upscaled sprites)</span></label>
+        <select id="nativeScale">
+          <option value="auto" selected>Auto-detect</option>
+          <option value="1">1× — already native</option>
+          <option value="2">2× upscaled</option>
+          <option value="3">3× upscaled</option>
+          <option value="4">4× upscaled</option>
+          <option value="6">6× upscaled</option>
+          <option value="8">8× upscaled</option>
+        </select>
+      </div>
+      <div class="grow"><label class="fl">Resolved</label>
+        <div class="hint" id="detectedScale" style="margin-top:10px">—</div>
+      </div>
+    </div>
+    <div class="hint">Emulator screenshots and 2×/4× ports are integer upscales. Recovering the native grid first keeps every sprite pixel intact instead of resampling it into mush. Leave on auto for scans and photos.</div>
+
     <div class="row" style="margin-top:2px">
       <div class="grow"><label class="fl">Dithering</label>
         <select id="dither">
-          <option value="none">None — preserve broad color areas</option>
-          <option value="bayer" selected>Bayer 4×4 — clean ordered texture</option>
-          <option value="floyd">Floyd–Steinberg — smooth detail</option>
-          <option value="atkinson">Atkinson — lighter detail</option>
+          <option value="none" selected>None — solid areas (sprites)</option>
+          <option value="bayer">Bayer 4×4 — ordered</option>
+          <option value="floyd">Floyd–Steinberg — smooth</option>
+          <option value="atkinson">Atkinson — light</option>
         </select>
       </div>
       <div class="grow"><label class="fl">Color distance</label>
@@ -527,17 +595,17 @@
 
     <div class="sliderline" id="ditherStrengthLine">
       <span class="lab">Dither strength</span>
-      <input type="range" id="ditherStrength" min="0" max="100" value="35">
-      <span class="val" id="ditherStrengthVal">35%</span>
+      <input type="range" id="ditherStrength" min="0" max="100" value="25">
+      <span class="val" id="ditherStrengthVal">25%</span>
     </div>
     <div class="hint">Lower strength keeps large color areas cleaner. At 0%, every mode behaves like direct palette matching.</div>
 
     <div class="sliderline">
-      <span class="lab">Smoothing (anti-alias)</span>
-      <input type="range" id="aliasSlider" min="0" max="100" value="50">
-      <span class="val" id="aliasVal">50%</span>
+      <span class="lab">Edge cut-off</span>
+      <input type="range" id="alphaThresh" min="10" max="90" value="40">
+      <span class="val" id="alphaThreshVal">40%</span>
     </div>
-    <div class="hint">0% = hard pixel edges (nearest-neighbor, crisp retro look) · 100% = maximum smoothing (soft anti-aliased edges, best for photos). The blur scales with how far the crop is downscaled to the grid.</div>
+    <div class="hint">A voxel turns solid only when at least this share of it covers the subject. Raise it to thin the silhouette, lower it to keep more outline detail.</div>
 
     <div class="hint" style="margin-top:10px">Export size: <b id="sizeInfo">32×16</b> px — exact multiples of 16 so ChiselGraph maps 1 px = 1 voxel per block face.</div>
 
@@ -554,6 +622,12 @@
 
     <div id="paletteLoading" class="loading"><div class="spinner"></div>Loading block palette from game assets…</div>
     <div id="paletteError" class="hint warn" style="display:none"></div>
+
+    <label class="switch" style="margin:0 0 10px">
+      <input type="checkbox" id="survivalOnly" checked>
+      Survival-obtainable blocks only
+    </label>
+    <div class="hint" style="margin-top:-4px">The 80 fixed <b>Creative Color</b> blocks give much better reds and blues, but exist only in creative mode. Leave this on for builds a survival player has to place.</div>
 
     <div class="palette-bar" id="paletteBar"></div>
     <div class="hint" id="paletteBarHint">0/16 materials — click blocks in the drawer, or drag them here</div>
@@ -623,7 +697,7 @@
     <div class="preview-legend" aria-label="Preview legend">
       <span><i class="legend-block"></i> block boundary</span>
       <span><i class="legend-voxel"></i> voxel cell</span>
-      <span class="legend-note">Guides and original overlay are preview-only; the downloaded PNG stays clean.</span>
+      <span class="legend-note">Empty voxels are transparent — the checkerboard is preview only. Guides and the original overlay never reach the downloaded PNG.</span>
     </div>
 
     <div class="stats-cards-wrap">
@@ -659,6 +733,401 @@
 </div>
 
 <script>
+
+/* ===== conversion core (pure functions, namespaced as CM) ===== */
+const CM = (function () {
+/* ChiselMage conversion core — pure functions, no DOM. Testable in Node. */
+'use strict';
+
+/* ---------------- colour ---------------- */
+const M1 = [0.4122214708,0.5363325363,0.0514459929,
+            0.2119034982,0.6806995451,0.1073969566,
+            0.0883024619,0.2817188376,0.6299787005];
+const M2 = [0.2104542553,0.7936177850,-0.0040720468,
+            1.9779984951,-2.4285922050,0.4505937099,
+            0.0259040371,0.7827717662,-0.8086757660];
+
+function srgbLin(v){ v/=255; return v<=0.04045 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); }
+
+/* sRGB triple -> [L,a,b] in Oklab */
+function rgbToOklab(r,g,b){
+  const lr=srgbLin(r), lg=srgbLin(g), lb=srgbLin(b);
+  const l=Math.cbrt(M1[0]*lr+M1[1]*lg+M1[2]*lb);
+  const m=Math.cbrt(M1[3]*lr+M1[4]*lg+M1[5]*lb);
+  const s=Math.cbrt(M1[6]*lr+M1[7]*lg+M1[8]*lb);
+  return [M2[0]*l+M2[1]*m+M2[2]*s,
+          M2[3]*l+M2[4]*m+M2[5]*s,
+          M2[6]*l+M2[7]*m+M2[8]*s];
+}
+function hexToRgb(h){ const n=parseInt(h.slice(1),16); return [n>>16&255,n>>8&255,n&255]; }
+
+/* ---------------- background detection ----------------
+   Median of the border ring. Tolerance comes from the whole image: when the
+   backdrop dominates (logo / sprite sheets) the 65th percentile of distance
+   lands inside background compression noise, so it scales automatically. */
+function detectBackground(data, w, h){
+  const rs=[],gs=[],bs=[];
+  const push=(x,y)=>{ const i=(y*w+x)*4; rs.push(data[i]);gs.push(data[i+1]);bs.push(data[i+2]); };
+  for(let x=0;x<w;x++){ push(x,0); push(x,h-1); }
+  for(let y=1;y<h-1;y++){ push(0,y); push(w-1,y); }
+  const med=a=>{ a.sort((p,q)=>p-q); return a[a.length>>1]; };
+  const bg=[med(rs),med(gs),med(bs)];
+
+  const dist=(i)=>{ const dr=data[i]-bg[0],dg=data[i+1]-bg[1],db=data[i+2]-bg[2];
+                    return Math.sqrt(dr*dr+dg*dg+db*db); };
+  const step=Math.max(1,Math.floor(Math.sqrt(w*h/20000)));
+  const ds=[];
+  for(let y=0;y<h;y+=step) for(let x=0;x<w;x+=step){ const i=(y*w+x)*4; ds.push(dist(i)); }
+  ds.sort((p,q)=>p-q);
+  const tol=Math.max(ds[Math.floor(ds.length*0.65)]||0,12);
+  return {color:bg, tol};
+}
+
+/* alpha 0..1 per pixel; 1 = keep, 0 = backdrop */
+function buildAlpha(data, w, h, bg, tol){
+  const a=new Float32Array(w*h);
+  const [br,bg_,bb]=bg;
+  const soft=Math.max(tol*0.6,4);
+  for(let p=0,n=w*h;p<n;p++){
+    const i=p*4;
+    const dr=data[i]-br, dg=data[i+1]-bg_, db=data[i+2]-bb;
+    const d=Math.sqrt(dr*dr+dg*dg+db*db);
+    if(data[i+3]===0){ a[p]=0; continue; }
+    // soft edge: fully background at tol, fully solid at tol+soft
+    a[p]= d<=tol ? 0 : (d>=tol+soft ? 1 : (d-tol)/soft);
+  }
+  return a;
+}
+
+/* ---------------- resampling ----------------
+   Per output cell, average ONLY kept pixels. Averaging the backdrop in is what
+   turned every sprite edge into a dark halo, and it is why a 70%-background
+   image collapsed to a black slab. */
+function resampleCells(data, w, h, alpha, tw, th, method, alphaThresh){
+  const rgb=new Float32Array(tw*th*3);
+  const cov=new Float32Array(tw*th);
+  const xb=[], yb=[];
+  for(let i=0;i<=tw;i++) xb.push(Math.round(i*w/tw));
+  for(let i=0;i<=th;i++) yb.push(Math.round(i*h/th));
+
+  const histR=new Int32Array(256), histG=new Int32Array(256), histB=new Int32Array(256);
+
+  for(let oy=0;oy<th;oy++){
+    const y0=yb[oy], y1=Math.max(yb[oy]+1,yb[oy+1]);
+    for(let ox=0;ox<tw;ox++){
+      const x0=xb[ox], x1=Math.max(xb[ox]+1,xb[ox+1]);
+      let total=0, kept=0, wr=0, wg=0, wb=0, wa=0;
+      histR.fill(0); histG.fill(0); histB.fill(0);
+      let domKey=-1, domCount=0, domR=0, domG=0, domB=0;
+      const domMap=new Map();
+
+      for(let y=y0;y<y1 && y<h;y++){
+        for(let x=x0;x<x1 && x<w;x++){
+          const p=y*w+x, i=p*4, a=alpha[p];
+          total++;
+          if(a>=0.5) kept++;
+          if(a<=0){ continue; }
+          const r=data[i],g=data[i+1],b=data[i+2];
+          wr+=r*a; wg+=g*a; wb+=b*a; wa+=a;
+          histR[r]++; histG[g]++; histB[b]++;
+          if(method==='dominant'){
+            const k=((r>>3)<<10)|((g>>3)<<5)|(b>>3);
+            const e=domMap.get(k);
+            if(e){ e[0]++; e[1]+=r; e[2]+=g; e[3]+=b; }
+            else domMap.set(k,[1,r,g,b]);
+          }
+        }
+      }
+
+      const cell=oy*tw+ox;
+      const coverage= total? kept/total : 0;
+      cov[cell]=coverage;
+      if(coverage<alphaThresh || wa<=0){ continue; }
+
+      let cr,cg,cb;
+      if(method==='mean'){
+        cr=wr/wa; cg=wg/wa; cb=wb/wa;
+      } else if(method==='nearest'){
+        const sx=Math.min(w-1,(x0+x1)>>1), sy=Math.min(h-1,(y0+y1)>>1);
+        const i=(sy*w+sx)*4; cr=data[i]; cg=data[i+1]; cb=data[i+2];
+      } else if(method==='dominant'){
+        for(const e of domMap.values()){
+          if(e[0]>domCount){ domCount=e[0]; domR=e[1]; domG=e[2]; domB=e[3]; }
+        }
+        cr=domR/domCount; cg=domG/domCount; cb=domB/domCount;
+      } else { // median (default): robust to compression noise, keeps edges crisp
+        const medOf=hist=>{ let acc=0, half=(hist.reduce((s,v)=>s+v,0))>>1;
+          for(let v=0;v<256;v++){ acc+=hist[v]; if(acc>half) return v; } return 128; };
+        cr=medOf(histR); cg=medOf(histG); cb=medOf(histB);
+      }
+      rgb[cell*3]=cr; rgb[cell*3+1]=cg; rgb[cell*3+2]=cb;
+    }
+  }
+  return {rgb, cov};
+}
+
+/* ---------------- native pixel size ----------------
+   Old pixel art is almost always distributed upscaled by an integer factor
+   (emulator screenshots, 2x/3x/4x ports). Resampling that arbitrary factor is
+   what turns crisp sprites into mush. The reliable signal is the spacing of
+   colour transitions: in an s-times upscale, columns/rows only change at
+   multiples of s, so the modal gap between detected edges is s. */
+function detectNativeScale(data, w, h, maxScale){
+  const maxS = maxScale || 12;
+  const colChange = new Float64Array(w);
+  for (let x = 1; x < w; x++) {
+    let ch = 0, n = 0;
+    for (let y = 0; y < h; y++) {
+      const i = (y * w + x) * 4, j = (y * w + x - 1) * 4;
+      if (data[i+3] < 200 || data[j+3] < 200) continue;
+      n++;
+      if (Math.abs(data[i]-data[j]) > 10 || Math.abs(data[i+1]-data[j+1]) > 10 || Math.abs(data[i+2]-data[j+2]) > 10) ch++;
+    }
+    colChange[x] = n ? ch / n : 0;
+  }
+  const rowChange = new Float64Array(h);
+  for (let y = 1; y < h; y++) {
+    let ch = 0, n = 0;
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4, j = ((y - 1) * w + x) * 4;
+      if (data[i+3] < 200 || data[j+3] < 200) continue;
+      n++;
+      if (Math.abs(data[i]-data[j]) > 10 || Math.abs(data[i+1]-data[j+1]) > 10 || Math.abs(data[i+2]-data[j+2]) > 10) ch++;
+    }
+    rowChange[y] = n ? ch / n : 0;
+  }
+  const gapMode = arr => {
+    const pos = [];
+    for (let i = 1; i < arr.length; i++) if (arr[i] > 0.12) pos.push(i);
+    if (pos.length < 4) return { s: 1, support: 0 };
+    const hist = new Map();
+    for (let i = 1; i < pos.length; i++) {
+      const g = pos[i] - pos[i-1];
+      if (g >= 1 && g <= maxS) hist.set(g, (hist.get(g) || 0) + 1);
+    }
+    let s = 1, bc = 0;
+    for (const [g, c] of hist) if (c > bc) { bc = c; s = g; }
+    return { s, support: bc / (pos.length - 1) };
+  };
+  const gx = gapMode(colChange), gy = gapMode(rowChange);
+  // Require a clear winner and agreement between axes; otherwise do nothing.
+  let s = Math.max(1, Math.round((gx.s + gy.s) / 2));
+  const weak = Math.min(gx.support, gy.support) < 0.4;
+  const disagree = Math.abs(gx.s - gy.s) > 1;
+  if (weak || disagree || s < 2) return 1;
+  if (Math.floor(w / s) < 8 || Math.floor(h / s) < 8) return 1;
+  return s;
+}
+
+/* Decimate by an integer factor, taking the median of each block so remaining
+   compression noise is voted out instead of averaged in. */
+function decimate(data, w, h, a, s){
+  const nw = Math.max(1, Math.floor(w / s)), nh = Math.max(1, Math.floor(h / s));
+  const out = new Uint8ClampedArray(nw * nh * 4);
+  const na = new Float32Array(nw * nh);
+  const hr = new Int32Array(256), hg = new Int32Array(256), hb = new Int32Array(256);
+  const medOf = hist => { let acc = 0, half = 0;
+    for (let v = 0; v < 256; v++) half += hist[v];
+    half >>= 1;
+    for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc > half) return v; }
+    return 128; };
+  for (let y = 0; y < nh; y++) for (let x = 0; x < nw; x++) {
+    hr.fill(0); hg.fill(0); hb.fill(0);
+    let asum = 0, an = 0;
+    for (let yy = 0; yy < s; yy++) for (let xx = 0; xx < s; xx++) {
+      const syy = y * s + yy, sxx = x * s + xx;
+      if (syy >= h || sxx >= w) continue;
+      const i = (syy * w + sxx) * 4;
+      hr[data[i]]++; hg[data[i+1]]++; hb[data[i+2]]++;
+      asum += a[syy * w + sxx]; an++;
+    }
+    const d = (y * nw + x) * 4;
+    out[d] = medOf(hr); out[d+1] = medOf(hg); out[d+2] = medOf(hb);
+    out[d+3] = an ? (asum / an) * 255 : 0;
+    na[y * nw + x] = an ? asum / an : 0;
+  }
+  return { data: out, w: nw, h: nh, alpha: na };
+}
+
+/* ---------------- palette selection ----------------
+   Greedy coverage: repeatedly add the block that most reduces total Oklab
+   error across the cells that are actually filled. */
+function selectPalette(voxRgb, cov, palette, n, opts){
+  const o=opts||{};
+  const alphaThresh=o.alphaThresh==null?0.4:o.alphaThresh;
+  const space=o.useLab?'oklab':'rgb';
+
+  // representative colours, weighted by frequency
+  const buckets=new Map();
+  let filled=0;
+  const total=voxRgb.length/3;
+  for(let cell=0;cell<total;cell++){
+    if(cov[cell]<alphaThresh) continue;
+    filled++;
+    const r=voxRgb[cell*3],g=voxRgb[cell*3+1],b=voxRgb[cell*3+2];
+    const k=((r>>5)<<12)|((g>>5)<<6)|(b>>5);
+    const e=buckets.get(k);
+    if(e){ e.n++; e.r+=r; e.g+=g; e.b+=b; }
+    else buckets.set(k,{n:1,r,g,b});
+  }
+  if(!filled) return [];
+
+  const reps=[];
+  for(const e of buckets.values()){
+    const r=e.r/e.n, g=e.g/e.n, b=e.b/e.n;
+    reps.push({w:e.n/filled, v:space==='oklab'?rgbToOklab(r,g,b):[r,g,b]});
+  }
+  reps.sort((a,b)=>b.w-a.w);
+  const use=reps.slice(0,o.votes||24);
+
+  const cands=palette.map((p,idx)=>{
+    const [r,g,b]=hexToRgb(p.color);
+    return {idx, v:space==='oklab'?rgbToOklab(r,g,b):[r,g,b]};
+  });
+
+  const scale = space==='oklab' ? 1 : 0.0001; // keep magnitudes comparable
+  const best=new Float64Array(use.length).fill(Infinity);
+  const chosen=[];
+  for(let step=0;step<n;step++){
+    let bestIdx=-1, bestCost=Infinity;
+    const minSep = (o.minSep==null?0.055:o.minSep);
+    for(const c of cands){
+      if(chosen.includes(c.idx)) continue;
+      // Two blocks that look almost identical will alternate voxel by voxel
+      // and read as speckle you cannot chisel cleanly. Require perceptible
+      // separation in Oklab before a near-duplicate may join the palette.
+      if(minSep>0){
+        let tooClose=false;
+        for(const k of chosen){
+          const cv=cands.find(x=>x.idx===k).v;
+          const d0=c.v[0]-cv[0], d1=c.v[1]-cv[1], d2=c.v[2]-cv[2];
+          if(d0*d0+d1*d1+d2*d2 < minSep*minSep){ tooClose=true; break; }
+        }
+        if(tooClose) continue;
+      }
+      let cost=0;
+      for(let k=0;k<use.length;k++){
+        const u=use[k];
+        const d0=c.v[0]-u.v[0], d1=c.v[1]-u.v[1], d2=c.v[2]-u.v[2];
+        const e=(d0*d0+d1*d1+d2*d2)*scale;
+        // Residual after adding this candidate. Comparing the FULL residual
+        // (min of current-best and candidate) is what makes this a greedy
+        // maximisation of error reduction; summing only where e<best[k]
+        // silently favoured already-close blocks and collapsed the palette.
+        cost += Math.min(e, best[k]) * u.w;
+      }
+      if(cost<bestCost-1e-12){ bestCost=cost; bestIdx=c.idx; }
+    }
+    if(bestIdx<0) break;
+    chosen.push(bestIdx);
+    const c=cands.find(x=>x.idx===bestIdx);
+    for(let k=0;k<use.length;k++){
+      const u=use[k];
+      const d0=c.v[0]-u.v[0], d1=c.v[1]-u.v[1], d2=c.v[2]-u.v[2];
+      const e=(d0*d0+d1*d1+d2*d2)*scale;
+      if(e<best[k]) best[k]=e;
+    }
+    let err=0; for(let k=0;k<use.length;k++) err+=best[k]*use[k].w;
+    if(err<1e-9) break;
+    if(o.stopError!=null && err<o.stopError) break;
+  }
+  return chosen;
+}
+
+/* ---------------- quantise ---------------- */
+const BAYER4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+
+function quantise(voxRgb, cov, palette, idxs, opts){
+  const o=opts||{};
+  const tw=o.tw, th=o.th, alphaThresh=o.alphaThresh==null?0.4:o.alphaThresh;
+  const space=(o.useLab?'oklab':'rgb');
+  const dither=o.dither||'none';
+  const strength=o.ditherStrength==null?0:(o.ditherStrength/100);
+
+  const cands=idxs.map(i=>{
+    const [r,g,b]=hexToRgb(palette[i].color);
+    return {rgb:[r,g,b], v: space==='oklab'?rgbToOklab(r,g,b):[r,g,b]};
+  });
+  const n=cands.length;
+  if(!n) return {pick:new Uint8Array(0), rgb:new Float32Array(0), mask:new Uint8Array(0)};
+
+  const total=tw*th;
+  const pick=new Uint8Array(total);
+  const out=new Float32Array(total*3);
+  const mask=new Uint8Array(total);
+
+  // error-diffusion working buffer (only used for floyd/atkinson)
+  const buf=new Float32Array(total*3);
+  for(let c=0;c<total;c++){
+    buf[c*3]=voxRgb[c*3]; buf[c*3+1]=voxRgb[c*3+1]; buf[c*3+2]=voxRgb[c*3+2];
+  }
+  const push=(x,y,er,eg,eb,f)=>{
+    if(x<0||x>=tw||y<0||y>=th) return;
+    const c=y*tw+x;
+    if(cov[c]<alphaThresh) return;
+    const j=c*3;
+    buf[j]+=er*f*strength; buf[j+1]+=eg*f*strength; buf[j+2]+=eb*f*strength;
+  };
+
+  const amp = 0.02*strength; // Oklab L units per dither step
+
+  for(let y=0;y<th;y++){
+    for(let x=0;x<tw;x++){
+      const c=y*tw+x;
+      if(cov[c]<alphaThresh){ pick[c]=0; mask[c]=0; continue; }
+      mask[c]=1;
+
+      let j=c*3;
+      let r=buf[j], g=buf[j+1], b=buf[j+2];
+      let L=null;
+      if(space==='oklab'){
+        L=rgbToOklab(r,g,b);
+        if(dither==='bayer'&&strength>0){
+          const t=((BAYER4[(y&3)*4+(x&3)]+0.5)/16-0.5)*amp*2;
+          L=[L[0]+t,L[1],L[2]];
+        }
+      } else if(dither==='bayer'&&strength>0){
+        const t=((BAYER4[(y&3)*4+(x&3)]+0.5)/16-0.5)*40*strength;
+        r=Math.max(0,Math.min(255,r+t)); g=Math.max(0,Math.min(255,g+t)); b=Math.max(0,Math.min(255,b+t));
+      }
+
+      let bi=0, bd=Infinity;
+      for(let i=0;i<n;i++){
+        const cv=cands[i].v;
+        let d;
+        if(space==='oklab'){
+          const d0=L[0]-cv[0], d1=L[1]-cv[1], d2=L[2]-cv[2];
+          d=d0*d0+d1*d1+d2*d2;
+        } else {
+          const d0=r-cv[0], d1=g-cv[1], d2=b-cv[2];
+          d=0.30*d0*d0+0.59*d1*d1+0.11*d2*d2;
+        }
+        if(d<bd){ bd=d; bi=i; }
+      }
+      pick[c]=bi;
+      const q=cands[bi].rgb;
+      out[c*3]=q[0]; out[c*3+1]=q[1]; out[c*3+2]=q[2];
+
+      if(dither==='floyd'||dither==='atkinson'){
+        const er=r-q[0], eg=g-q[1], eb=b-q[2];
+        if(dither==='floyd'){
+          push(x+1,y,er,eg,eb,7/16); push(x-1,y+1,er,eg,eb,3/16);
+          push(x,y+1,er,eg,eb,5/16); push(x+1,y+1,er,eg,eb,1/16);
+        } else {
+          const f=1/8;
+          push(x+1,y,er,eg,eb,f); push(x+2,y,er,eg,eb,f);
+          push(x-1,y+1,er,eg,eb,f); push(x,y+1,er,eg,eb,f);
+          push(x+1,y+1,er,eg,eb,f); push(x,y+2,er,eg,eb,f);
+        }
+      }
+    }
+  }
+  return {pick, rgb:out, mask};
+}
+return { rgbToOklab, hexToRgb, detectBackground, buildAlpha, resampleCells, selectPalette, quantise, detectNativeScale, decimate };
+})();
+/* ===== end conversion core ===== */
+
 "use strict";
 
 const $ = id => document.getElementById(id);
@@ -671,6 +1140,9 @@ let usingText = false;          // text mode?
 let result = null;
 let gamePalette = [];
 let activePalette = [];
+let paletteAuto = false;          // true while the palette is a machine suggestion
+let imagePaletteSnapshot = null;  // kept so switching to text and back is lossless
+let lastSourceMode = "image";
 let suggestedPalette = [];
 let currentTab = "all";
 let drawerOpen = false;
@@ -786,12 +1258,28 @@ function drawCropOverlay() {
 
   // inside-crop guides: block + voxel grid when ratio-locked
   if (ratioLocked()) {
-    const bx = +$("blocksX").value || 1, by = +$("blocksY").value || 1;
-    g.strokeStyle = "rgba(120,170,255,0.28)";
-    g.lineWidth = 1;
+    const bx = Math.max(1, +$("blocksX").value || 1);
+    const by = Math.max(1, +$("blocksY").value || 1);
+    // The old code stepped by VOX in *source pixels*, so the guides marched at
+    // a fixed 16px interval regardless of how much of the image the crop
+    // covered: with ratio lock on they visibly did not line up with the crop.
+    // Map the grid proportionally across the crop rect instead.
+    const vxs = w / (bx * VOX);   // source px per voxel column
+    const vys = h / (by * VOX);
+    if (vxs >= 2 && vys >= 2) {
+      g.strokeStyle = "rgba(120,170,255,0.20)";
+      g.lineWidth = 1;
+      g.beginPath();
+      for (let i = 1; i < bx * VOX; i++) { const px = Math.round(x + i * vxs) + .5; g.moveTo(px, y); g.lineTo(px, y + h); }
+      for (let i = 1; i < by * VOX; i++) { const py = Math.round(y + i * vys) + .5; g.moveTo(x, py); g.lineTo(x + w, py); }
+      g.stroke();
+    }
+    // block boundaries, always drawn and stronger
+    g.strokeStyle = "rgba(120,170,255,0.75)";
+    g.lineWidth = 1.5;
     g.beginPath();
-    for (let i = 1; i < bx * VOX; i += VOX) { g.moveTo(x + i + .5, y); g.lineTo(x + i + .5, y + h); }
-    for (let i = 1; i < by * VOX; i += VOX) { g.moveTo(x, y + i + .5); g.lineTo(x + w, y + i + .5); }
+    for (let i = 1; i < bx; i++) { const px = Math.round(x + i * w / bx) + .5; g.moveTo(px, y); g.lineTo(px, y + h); }
+    for (let i = 1; i < by; i++) { const py = Math.round(y + i * h / by) + .5; g.moveTo(x, py); g.lineTo(x + w, py); }
     g.stroke();
   }
 
@@ -1066,12 +1554,20 @@ function hasSource() { return srcCanvas.width > 0; }
    ========================================================= */
 function showTab(which) {
   usingText = which === "text";
+  if (which === "text" && lastSourceMode === "image") imagePaletteSnapshot = activePalette.slice();
+  if (which === "image" && lastSourceMode === "text" && imagePaletteSnapshot && imagePaletteSnapshot.length) {
+    activePalette = imagePaletteSnapshot.slice();
+    renderPaletteBar(); renderPaletteGrid();
+  }
+  lastSourceMode = which;
   $("choiceImage").classList.toggle("active", !usingText);
   $("choiceText").classList.toggle("active", usingText);
   $("imageControls").style.display = usingText ? "none" : "block";
   $("textControls").style.display = usingText ? "block" : "none";
-  $("cropStepTitle").textContent = usingText ? "Crop the rendered text" : "Crop your image";
+  $("cropStepTitle").textContent = usingText ? "Text preview" : "Crop your image";
   renderSource();
+  refreshSuggestions();
+  ensureTextMaterials();
   process();
 }
 $("choiceImage").onclick = () => showTab("image");
@@ -1080,6 +1576,149 @@ $("choiceText").onclick = () => showTab("text");
 function activeFontFamily() {
   const v = $("fontSelect").value;
   return v === "__custom" ? ($("customFont").value.trim() || "sans-serif") : v;
+}
+
+/* ---------------------------------------------------------
+   SURVIVAL FILTER
+   The 80 fixed Creative Color blocks reproduce saturated hues far better than
+   any obtainable material, but they only exist in creative mode. A build a
+   survival player has to place cannot use them, so they are opt-in.
+   --------------------------------------------------------- */
+const CREATIVE_CAT = "Creative Colors";
+function usablePalette() {
+  return $("survivalOnly").checked
+    ? gamePalette.filter(b => b.category !== CREATIVE_CAT)
+    : gamePalette;
+}
+
+/* ---------------------------------------------------------
+   TEXT -> VOXELS
+   Rendering text into the source canvas and then resampling it is what made
+   text mode unusable: canvas glyphs are antialiased, and lowering a 100px
+   render to 32x16 mangles every stem. Instead the glyphs are fitted to the
+   target grid, drawn at 4x supersampling, and thresholded straight into
+   voxels - one voxel per pixel, never resampled.
+   --------------------------------------------------------- */
+const TEXT_SS = 4;
+function hexToRgbArr(h) {
+  const v = (h || "#ffffff").replace("#", "");
+  const n = v.length === 3 ? v.split("").map(c => c + c).join("") : v;
+  return [parseInt(n.slice(0, 2), 16) || 0, parseInt(n.slice(2, 4), 16) || 0, parseInt(n.slice(4, 6), 16) || 0];
+}
+
+function textToCells(tw, th) {
+  const text = ($("textInput").value || " ").trim() || " ";
+  const fam = activeFontFamily();
+  const weight = $("textWeight").value || "bold";
+  const align = $("textAlign").value || "center";
+  const wantOutline = $("textOutline").value !== "none";
+
+  const c = document.createElement("canvas");
+  c.width = tw * TEXT_SS; c.height = th * TEXT_SS;
+  const cx = c.getContext("2d", { willReadFrequently: true });
+  cx.textBaseline = "alphabetic";
+  cx.fillStyle = "#ffffff";
+
+  // Largest size whose ink still fits inside the grid.
+  const maxW = c.width * 0.98, maxH = c.height * 0.94;
+  let lo = 2, hi = c.height * 1.2;
+  for (let i = 0; i < 26; i++) {
+    const mid = (lo + hi) / 2;
+    cx.font = `${weight} ${mid}px ${fam}`;
+    const m = cx.measureText(text);
+    const hh = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+    if (m.width <= maxW && hh <= maxH) lo = mid; else hi = mid;
+  }
+  const size = Math.max(4, lo);
+  cx.font = `${weight} ${size}px ${fam}`;
+  const m = cx.measureText(text);
+  const asc = m.actualBoundingBoxAscent || size * 0.7;
+  const desc = m.actualBoundingBoxDescent || 0;
+  let x = (c.width - m.width) / 2;
+  if (align === "left") x = c.width * 0.02;
+  if (align === "right") x = c.width * 0.98 - m.width;
+  const y = (c.height + asc - desc) / 2;
+  cx.fillText(text, x, y);
+
+  const px = cx.getImageData(0, 0, c.width, c.height).data;
+  const on = new Uint8Array(tw * th);
+  for (let gy = 0; gy < th; gy++) for (let gx = 0; gx < tw; gx++) {
+    let sum = 0;
+    for (let sy = 0; sy < TEXT_SS; sy++) for (let sx = 0; sx < TEXT_SS; sx++) {
+      const ix = gx * TEXT_SS + sx, iy = gy * TEXT_SS + sy;
+      sum += px[(iy * c.width + ix) * 4 + 3] / 255;
+    }
+    on[gy * tw + gx] = (sum / (TEXT_SS * TEXT_SS)) >= 0.45 ? 1 : 0;
+  }
+
+  const edge = new Uint8Array(tw * th);
+  if (wantOutline) {
+    for (let gy = 0; gy < th; gy++) for (let gx = 0; gx < tw; gx++) {
+      const i = gy * tw + gx;
+      if (on[i]) continue;
+      if ((gx > 0 && on[i - 1]) || (gx < tw - 1 && on[i + 1]) ||
+          (gy > 0 && on[i - tw]) || (gy < th - 1 && on[i + tw])) edge[i] = 1;
+    }
+  }
+
+  const fill = hexToRgbArr($("textColor").value);
+  const line = hexToRgbArr($("textOutlineColor").value);
+  const rgb = new Float32Array(tw * th * 3);
+  const cov = new Float32Array(tw * th);
+  for (let i = 0; i < tw * th; i++) {
+    const col = on[i] ? fill : (edge[i] ? line : null);
+    if (!col) continue;
+    rgb[i * 3] = col[0]; rgb[i * 3 + 1] = col[1]; rgb[i * 3 + 2] = col[2];
+    cov[i] = 1;
+  }
+  return { rgb, cov };
+}
+
+/* A palette derived from a photo has no business being used for lettering, so
+   make sure the text and outline colours each have a close material in reach. */
+function ensureTextMaterials() {
+  if (!usingText || !gamePalette.length) return false;
+  const pool = usablePalette();
+  const nearest = col => {
+    const lab = CM.rgbToOklab(col[0], col[1], col[2]);
+    let best = null, bestD = Infinity;
+    for (const b of pool) {
+      const c2 = CM.hexToRgb(b.color);
+      const l2 = CM.rgbToOklab(c2[0], c2[1], c2[2]);
+      const d = (lab[0] - l2[0]) ** 2 + (lab[1] - l2[1]) ** 2 + (lab[2] - l2[2]) ** 2;
+      if (d < bestD) { bestD = d; best = b; }
+    }
+    return best;
+  };
+
+  const fillB = nearest(hexToRgbArr($("textColor").value));
+  const outB = $("textOutline").value !== "none" ? nearest(hexToRgbArr($("textOutlineColor").value)) : null;
+  if (!fillB) return false;
+
+  // A palette derived from a photo has no place in lettering. While it is still
+  // a machine suggestion, replace it with the two materials the text needs.
+  if (paletteAuto) {
+    const next = [fillB];
+    if (outB && outB.code !== fillB.code) next.push(outB);
+    const same = next.length === activePalette.length && next.every((b, i) => activePalette[i] && activePalette[i].code === b.code);
+    if (!same) {
+      activePalette = next.map(b => ({...b, custom: false}));
+      renderPaletteBar(); renderPaletteGrid();
+      return true;
+    }
+    return false;
+  }
+
+  // Hand-built palette: never discard work, only fill a close gap if there is room.
+  let added = false;
+  for (const b of [fillB, outB].filter(Boolean)) {
+    if (activePalette.some(a => a.code === b.code)) continue;
+    if (activePalette.length >= MAX_MATERIALS) break;
+    activePalette.push({...b, custom: false});
+    added = true;
+  }
+  if (added) { renderPaletteBar(); renderPaletteGrid(); }
+  return added;
 }
 
 function renderSource() {
@@ -1112,9 +1751,11 @@ function renderSource() {
   const has = hasSource();
   $("stage").style.display = has ? "inline-block" : "none";
   $("editorEmpty").style.display = has ? "none" : "flex";
-  $("cropToolbar").style.display = has ? "grid" : "none";
-  $("cropActions").style.display = has ? "flex" : "none";
-  $("editorKeys").style.display = has ? "block" : "none";
+  const cropUi = has && !usingText;
+  $("cropToolbar").style.display = cropUi ? "grid" : "none";
+  $("cropActions").style.display = cropUi ? "flex" : "none";
+  $("editorKeys").style.display = cropUi ? "block" : "none";
+  $("textCropNote").style.display = (has && usingText) ? "block" : "none";
 
   if (has) {
     const ec = $("editCanvas");
@@ -1145,6 +1786,7 @@ function loadFromImage(im) {
     suggestedPalette = generateSuggestedPalette(tempCanvas);
     activePalette = suggestedPalette.slice(0, MAX_MATERIALS)
       .map(s => ({...s, custom: false, matchScore: undefined}));
+    paletteAuto = true;
     renderPaletteBar();
     renderSuggestedPalette();
     renderPaletteGrid();
@@ -1155,6 +1797,10 @@ function loadFromImage(im) {
   else if (paletteReady) paletteReady.then(applySuggestions);
   else applySuggestions();
   goStep(2); // advance the wizard to the crop step
+  // With ratio lock on, the rectangle must already match the grid, otherwise
+  // "cover" silently re-crops inside the visible selection.
+  if (ratioLocked()) cropToRatio(); else updateCropUI();
+  process();
   showToast(`Loaded ${im.naturalWidth}×${im.naturalHeight}px`);
 }
 
@@ -1237,7 +1883,7 @@ async function loadGamePalette() {
 
 function renderTabs() {
   const tabs = $("paletteTabs");
-  const categories = ["all", ...new Set(gamePalette.map(b => b.category))];
+  const categories = ["all", ...new Set(usablePalette().map(b => b.category))];
   tabs.innerHTML = categories.map(cat =>
     `<button class="palette-tab ${cat === currentTab ? "active" : ""}" data-cat="${cat}">${cat === "all" ? "All" : cat}</button>`
   ).join("");
@@ -1249,7 +1895,7 @@ function renderTabs() {
 function renderPaletteGrid() {
   const grid = $("paletteGrid");
   const search = $("paletteSearch").value.toLowerCase();
-  const filtered = gamePalette.filter(b =>
+  const filtered = usablePalette().filter(b =>
     (currentTab === "all" || b.category === currentTab) &&
     b.name.toLowerCase().includes(search)
   );
@@ -1282,9 +1928,9 @@ function renderPaletteGrid() {
 
 function updateDrawerFilterHint(count) {
   const search = $("paletteSearch").value;
-  $("drawerFilterHint").textContent = search ? `${count} matches` : `${gamePalette.length} blocks`;
+  $("drawerFilterHint").textContent = search ? `${count} matches` : `${usablePalette().length} blocks`;
 }
-function updateDrawerCount() { $("drawerCount").textContent = `(${gamePalette.length})`; }
+function updateDrawerCount() { $("drawerCount").textContent = `(${usablePalette().length})`; }
 
 $("drawerTrigger").onclick = () => {
   drawerOpen = !drawerOpen;
@@ -1294,9 +1940,10 @@ $("drawerTrigger").onclick = () => {
 
 function addToActivePalette(code) {
   if (activePalette.length >= MAX_MATERIALS) return showToast(`Maximum ${MAX_MATERIALS} materials reached`, true);
-  const block = gamePalette.find(b => b.code === code);
+  const block = usablePalette().find(b => b.code === code);
   if (!block || activePalette.some(a => a.code === code)) return;
   activePalette.push({...block, custom: false});
+  paletteAuto = false;
   renderPaletteBar(); renderPaletteGrid(); renderSuggestedPalette();
   process();
   showToast(`Added ${block.name}`);
@@ -1304,6 +1951,7 @@ function addToActivePalette(code) {
 
 function removeFromActivePalette(index) {
   activePalette.splice(index, 1);
+  paletteAuto = false;
   renderPaletteBar(); renderPaletteGrid(); renderSuggestedPalette();
   process();
 }
@@ -1361,35 +2009,56 @@ $("paletteSearch").oninput = renderPaletteGrid;
 /* =========================================================
    SUGGESTED PALETTE
    ========================================================= */
-function generateSuggestedPalette(sourceCanvas) {
-  if (!sourceCanvas) return [];
-  const w = sourceCanvas.width, h = sourceCanvas.height;
-  const ctx = sourceCanvas.getContext("2d", {willReadFrequently: true});
-  const data = ctx.getImageData(0, 0, w, h).data;
-  const samples = [];
-  const step = Math.max(1, Math.floor(Math.max(w, h) / 400));
-  for (let y = 0; y < h; y += step)
-    for (let x = 0; x < w; x += step) {
-      const i = (y * w + x) * 4;
-      if (data[i + 3] >= 128) samples.push([data[i], data[i+1], data[i+2]]);
-    }
-  if (!samples.length) return [];
-  const clusters = kmeans(samples, SUGGEST_COUNT);
-  const suggestions = [];
-  for (const centroid of clusters) {
-    const [r, g, b] = centroid;
-    let best = null, bestDist = Infinity;
-    for (const gp of gamePalette) {
-      const [pr, pg, pb] = hexToRgb(gp.color);
-      const dist = (r-pr)**2 + (g-pg)**2 + (b-pb)**2;
-      if (dist < bestDist) { bestDist = dist; best = gp; }
-    }
-    if (best && !suggestions.some(s => s.code === best.code))
-      suggestions.push({...best, matchScore: Math.max(0, 100 - Math.sqrt(bestDist) / 2.55).toFixed(0)});
-    if (suggestions.length >= SUGGEST_COUNT) break;
+function generateSuggestedPalette() {
+  // Pick the blocks that best reproduce what the pipeline actually produces,
+  // not the raw full-resolution upload. Matching against the full-res image
+  // (mostly backdrop, with compression noise) is why suggestions used to
+  // include several near-identical greys and almost no saturated colours.
+  if (!hasSource() || !gamePalette.length) return [];
+  const bx = Math.max(1, Math.min(8, +$("blocksX").value || 1));
+  const by = Math.max(1, Math.min(8, +$("blocksY").value || 1));
+  const tw = bx * VOX, th = by * VOX;
+
+  const fr = fitRect({x: crop.x, y: crop.y, w: Math.max(1, crop.w), h: Math.max(1, crop.h)}, tw, th, $("fitMode").value);
+  const grab = grabSource(fr.rect);
+  let data = grab.data, w = grab.w, h = grab.h;
+
+  let alpha = new Float32Array(w * h).fill(1);
+  if ($("bgMode").value === "remove") {
+    alpha = sourceHasAlpha(data, w, h)
+      ? alphaFromChannel(data, w, h)
+      : CM.buildAlpha(data, w, h, ...(() => {
+          const bgInfo = CM.detectBackground(data, w, h);
+          const manual = +$("bgTol").value;
+          return [bgInfo.color, manual > 0 ? manual : bgInfo.tol];
+        })());
   }
-  return suggestions;
+  const nsSel2 = $("nativeScale").value;
+  const ns2 = nsSel2 === "auto" ? CM.detectNativeScale(data, w, h, 12) : parseInt(nsSel2, 10) || 1;
+  if (ns2 > 1) {
+    const dec = CM.decimate(data, w, h, alpha, ns2);
+    data = dec.data; alpha = dec.alpha; w = dec.w; h = dec.h;
+  }
+  const alphaThresh = Math.max(0.05, Math.min(0.95, (+$("alphaThresh").value || 40) / 100));
+  const dw = Math.max(1, Math.round(fr.inner.dw)), dh = Math.max(1, Math.round(fr.inner.dh));
+  const cells = CM.resampleCells(data, w, h, alpha, dw, dh, $("sampleMode").value, alphaThresh);
+
+  const pool = usablePalette();
+  const idxs = CM.selectPalette(cells.rgb, cells.cov, pool, MAX_MATERIALS, {
+    alphaThresh, useLab: true, votes: 24,
+  });
+
+  const out = [];
+  const seen = new Set();
+  for (const i of idxs) {
+    const b = pool[i];
+    if (!b || seen.has(b.name)) continue;   // two blocks can share a display name
+    seen.add(b.name);
+    out.push({...b, matchScore: "auto"});
+  }
+  return out;
 }
+
 
 function kmeans(points, k, maxIter = 10) {
   if (points.length <= k) return points;
@@ -1519,13 +2188,47 @@ const BAYER4 = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
 /* =========================================================
    MAIN PROCESSING (crop-aware, smoothing-aware)
    ========================================================= */
-function configureSmoothing(ctx, tw, th) {
-  const a = +$("aliasSlider").value || 0;
-  const ratio = Math.max(crop.w / tw, crop.h / th); // downscale factor
-  ctx.imageSmoothingEnabled = a > 0;
-  ctx.imageSmoothingQuality = a > 60 ? "high" : (a > 25 ? "medium" : "low");
-  const blurPx = a > 0 ? (a / 100) * Math.min(ratio * 0.6, 5) : 0;
-  ctx.filter = blurPx >= 0.25 ? `blur(${blurPx.toFixed(2)}px)` : "none";
+/* ============ conversion pipeline ============ */
+
+/* Read an arbitrary source rect out of the loaded image, no smoothing. */
+function grabSource(rect) {
+  const w = Math.max(1, Math.round(rect.w)), h = Math.max(1, Math.round(rect.h));
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const cx = c.getContext("2d", { willReadFrequently: true });
+  cx.imageSmoothingEnabled = false;
+  cx.drawImage(srcCanvas, Math.round(rect.x), Math.round(rect.y), w, h, 0, 0, w, h);
+  return { data: cx.getImageData(0, 0, w, h).data, w, h };
+}
+
+/* Images that already carry transparency (PNG sprites, rendered text) must use
+   their alpha channel directly: guessing a backdrop colour there either keys
+   out nothing or keys out the subject. */
+function sourceHasAlpha(data, w, h) {
+  const step = Math.max(4, Math.floor((w * h) / 20000));
+  for (let p = 0; p < w * h; p += step) if (data[p * 4 + 3] < 200) return true;
+  return false;
+}
+function alphaFromChannel(data, w, h) {
+  const a = new Float32Array(w * h);
+  for (let p = 0; p < w * h; p++) a[p] = data[p * 4 + 3] / 255;
+  return a;
+}
+
+/* Which source rect maps to the target, and where it lands in the target. */
+function fitRect(rect, tw, th, fit) {
+  const sAr = rect.w / rect.h, tAr = tw / th;
+  if (fit === "stretch") return { rect, inner: { dw: tw, dh: th, dx: 0, dy: 0 } };
+  if (fit === "contain") {
+    let dw, dh;
+    if (sAr > tAr) { dw = tw; dh = tw / sAr; } else { dh = th; dw = th * sAr; }
+    return { rect, inner: { dw, dh, dx: (tw - dw) / 2, dy: (th - dh) / 2 } };
+  }
+  // cover: shrink the source rect to the target ratio, centred
+  const r = { x: rect.x, y: rect.y, w: rect.w, h: rect.h };
+  if (sAr > tAr) { r.w = rect.h * tAr; r.x = rect.x + (rect.w - r.w) / 2; }
+  else { r.h = rect.w / tAr; r.y = rect.y + (rect.h - r.h) / 2; }
+  return { rect: r, inner: { dw: tw, dh: th, dx: 0, dy: 0 } };
 }
 
 function process() {
@@ -1541,6 +2244,7 @@ function process() {
     return;
   }
   rebuildPaletteCache();
+  pal = palRgb.map(p => p.slice());
   renderSource();
 
   const bx = Math.max(1, Math.min(8, +$("blocksX").value || 1));
@@ -1549,99 +2253,121 @@ function process() {
   $("sizeInfo").textContent = `${tw}×${th}`;
   $("previewTag").textContent = `${bx}×${by} blocks = ${tw}×${th} px`;
 
-  // source rect = current crop
-  const sxr = crop.x, syr = crop.y, sww = crop.w, shh = crop.h;
-
   const fit = $("fitMode").value;
-  const tmp = document.createElement("canvas");
-  tmp.width = tw; tmp.height = th;
-  const tctx = tmp.getContext("2d", {willReadFrequently: true});
+  const bgSel = $("bgMode").value;
+  const alphaThresh = Math.max(0.05, Math.min(0.95, (+$("alphaThresh").value || 40) / 100));
+  const method = $("sampleMode").value;
 
-  if ($("bgMode").value === "first" && activePalette[0]) {
-    tctx.fillStyle = activePalette[0].color;
-    tctx.fillRect(0, 0, tw, th);
+  let rgb, cov;
+  if (!usingText) {
+  // ---- 1. source rect (crop, then fit)
+  let base = { x: crop.x, y: crop.y, w: Math.max(1, crop.w), h: Math.max(1, crop.h) };
+  const fr = fitRect(base, tw, th, fit);
+  const grab = grabSource(fr.rect);
+  let data = grab.data, w = grab.w, h = grab.h;
+
+  // ---- 2. background -> alpha
+  let alpha;
+  if (bgSel === "remove") {
+    if (sourceHasAlpha(data, w, h)) {
+      alpha = alphaFromChannel(data, w, h);
+      $("bgTolVal").textContent = "from alpha";
+    } else {
+      const bgInfo = CM.detectBackground(data, w, h);
+      const manual = +$("bgTol").value;
+      const tol = manual > 0 ? manual : bgInfo.tol;
+      alpha = CM.buildAlpha(data, w, h, bgInfo.color, tol);
+      $("bgTolVal").textContent = manual > 0 ? `manual ${manual}` : `auto ${bgInfo.tol.toFixed(0)}`;
+    }
+  } else {
+    alpha = new Float32Array(w * h).fill(1);
+    $("bgTolVal").textContent = "off";
   }
 
-  let dw, dh, dx, dy;
-  const sAr = sww / shh, tAr = tw / th;
-  configureSmoothing(tctx, tw, th);
-  if (fit === "stretch") {
-    tctx.drawImage(srcCanvas, sxr, syr, sww, shh, 0, 0, tw, th);
-  } else if (fit === "contain") {
-    if (sAr > tAr) { dw = tw; dh = tw / sAr; } else { dh = th; dw = th * sAr; }
-    dx = (tw - dw) / 2; dy = (th - dh) / 2;
-    tctx.drawImage(srcCanvas, sxr, syr, sww, shh, dx, dy, dw, dh);
-  } else { // cover
-    let csx = sxr, csy = syr, cw = sww, ch = shh;
-    if (sAr > tAr) { cw = shh * tAr; csx = sxr + (sww - cw) / 2; }
-    else { ch = sww / tAr; csy = syr + (shh - ch) / 2; }
-    tctx.drawImage(srcCanvas, csx, csy, cw, ch, 0, 0, tw, th);
+  // ---- 2b. recover the native pixel grid of an upscaled source
+  const nsSel = $("nativeScale").value;
+  let ns = nsSel === "auto" ? CM.detectNativeScale(data, w, h, 12) : parseInt(nsSel, 10) || 1;
+  if (ns > 1) {
+    const dec = CM.decimate(data, w, h, alpha, ns);
+    data = dec.data; alpha = dec.alpha; w = dec.w; h = dec.h;
   }
-  tctx.filter = "none";
+  $("detectedScale").textContent = ns > 1
+    ? `${ns}× upscale → native ${w}×${h} px`
+    : `1× — working at ${w}×${h} px`;
 
-  const src = tctx.getImageData(0, 0, tw, th).data;
-  const mode = $("dither").value;
-  const useLab = $("colorspace").value === "lab";
-  const ditherStrength = Math.max(0, Math.min(1, (+$("ditherStrength").value || 0) / 100));
-  pal = palRgb.map(p => p.slice());
-  const out = new Uint8Array(tw * th);
-  const buf = new Float32Array(tw * th * 3);
-
-  for (let i = 0; i < tw * th; i++) {
-    buf[i*3] = src[i*4]; buf[i*3+1] = src[i*4+1]; buf[i*3+2] = src[i*4+2];
-  }
-  const clampv = v => v < 0 ? 0 : (v > 255 ? 255 : v);
-  const push = (x, y, er, eg, eb, f) => {
-    if (x < 0 || x >= tw || y < 0 || y >= th) return;
-    // Transparent pixels are not voxels. Do not let their black RGB backing
-    // colour bleed into neighbouring opaque pixels during error diffusion.
-    if (src[(y * tw + x) * 4 + 3] < 128) return;
-    const j = (y * tw + x) * 3;
-    buf[j] += er * f * ditherStrength;
-    buf[j+1] += eg * f * ditherStrength;
-    buf[j+2] += eb * f * ditherStrength;
-  };
-
-  for (let y = 0; y < th; y++) {
-    for (let x = 0; x < tw; x++) {
-      const pixel = y * tw + x;
-      const i = pixel * 3;
-      if (src[pixel * 4 + 3] < 128) { out[pixel] = 255; continue; }
-      let r = clampv(buf[i]), g = clampv(buf[i+1]), b = clampv(buf[i+2]);
-      if (mode === "bayer" && ditherStrength > 0) {
-        // The old implementation added almost ±120 to every channel. That
-        // overwhelms the source image and makes the result look grey/noisy.
-        const amplitude = 96 * ditherStrength;
-        const t = ((BAYER4[(y % 4) * 4 + (x % 4)] + 0.5) / 16 - 0.5) * amplitude;
-        r = clampv(r + t); g = clampv(g + t); b = clampv(b + t);
+  // ---- 3. auto-trim empty margins (huge effective-resolution win)
+  if ($("autoTrim").checked && bgSel === "remove") {
+    let x0 = w, x1 = -1, y0 = h, y1 = -1;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      if (alpha[y * w + x] >= 0.5) {
+        if (x < x0) x0 = x; if (x > x1) x1 = x;
+        if (y < y0) y0 = y; if (y > y1) y1 = y;
       }
-      const qi = nearest(r, g, b, useLab);
-      out[pixel] = qi;
-      const q = pal[qi];
-      if (mode === "floyd") {
-        const er = r - q[0], eg = g - q[1], eb = b - q[2];
-        push(x+1, y, er, eg, eb, 7/16); push(x-1, y+1, er, eg, eb, 3/16);
-        push(x, y+1, er, eg, eb, 5/16); push(x+1, y+1, er, eg, eb, 1/16);
-      } else if (mode === "atkinson") {
-        const er = r - q[0], eg = g - q[1], eb = b - q[2], f = 1/8;
-        push(x+1, y, er, eg, eb, f); push(x+2, y, er, eg, eb, f);
-        push(x-1, y+1, er, eg, eb, f); push(x, y+1, er, eg, eb, f);
-        push(x+1, y+1, er, eg, eb, f); push(x, y+2, er, eg, eb, f);
+    }
+    if (x1 >= x0 && y1 >= y0 && (x1 - x0 + 1 !== w || y1 - y0 + 1 !== h)) {
+      const nw = x1 - x0 + 1, nh = y1 - y0 + 1;
+      const nd = new Uint8ClampedArray(nw * nh * 4), na = new Float32Array(nw * nh);
+      for (let y = 0; y < nh; y++) for (let x = 0; x < nw; x++) {
+        const s = ((y + y0) * w + (x + x0)) * 4, d = (y * nw + x) * 4;
+        nd[d] = data[s]; nd[d + 1] = data[s + 1]; nd[d + 2] = data[s + 2]; nd[d + 3] = data[s + 3];
+        na[y * nw + x] = alpha[(y + y0) * w + (x + x0)];
       }
+      data = nd; alpha = na; w = nw; h = nh;
     }
   }
 
+  // ---- 4. resample each voxel from the pixels that actually cover it
+  const inner = fr.inner;
+  const dw = Math.max(1, Math.round(inner.dw)), dh = Math.max(1, Math.round(inner.dh));
+  const cells = CM.resampleCells(data, w, h, alpha, dw, dh, method, alphaThresh);
+
+  // ---- 5. place into the full target grid (contain letterboxes as empty)
+  rgb = new Float32Array(tw * th * 3);
+  cov = new Float32Array(tw * th);
+  const ox = Math.round(inner.dx), oy = Math.round(inner.dy);
+  for (let y = 0; y < dh; y++) for (let x = 0; x < dw; x++) {
+    const tx = x + ox, ty = y + oy;
+    if (tx < 0 || tx >= tw || ty < 0 || ty >= th) continue;
+    const s = y * dw + x, d = ty * tw + tx;
+    rgb[d * 3] = cells.rgb[s * 3];
+    rgb[d * 3 + 1] = cells.rgb[s * 3 + 1];
+    rgb[d * 3 + 2] = cells.rgb[s * 3 + 2];
+    cov[d] = cells.cov[s];
+  }
+  } else {
+    // Text is rasterised at the grid's own resolution - nothing to fit, crop
+    // or resample.
+    const t = textToCells(tw, th);
+    rgb = t.rgb; cov = t.cov;
+    $("bgTolVal").textContent = "text";
+    $("detectedScale").textContent = "rasterised 1:1";
+  }
+
+  // ---- 6. quantise against the active palette
+  const useLab = $("colorspace").value === "lab";
+  const idxs = activePalette.map((_, i) => i);
+  const q = CM.quantise(rgb, cov, activePalette, idxs, {
+    tw, th, alphaThresh, useLab,
+    dither: $("dither").value,
+    ditherStrength: +$("ditherStrength").value || 0,
+  });
+
+  const out = new Uint8Array(tw * th);
+  for (let i = 0; i < tw * th; i++) out[i] = q.mask[i] ? q.pick[i] : 255;
+  if (bgSel === "first") for (let i = 0; i < tw * th; i++) if (out[i] === 255) out[i] = 0;
+
+  // ---- 7. preview
   const pv = $("preview");
   pv.width = tw; pv.height = th;
   const pctx = pv.getContext("2d");
   const imgData = pctx.createImageData(tw, th);
   for (let i = 0; i < tw * th; i++) {
-    const a = src[i*4 + 3];
-    if (a < 128) { imgData.data[i*4+3] = 0; out[i] = 255; }
-    else {
-      const c = pal[out[i]];
-      imgData.data[i*4] = c[0]; imgData.data[i*4+1] = c[1]; imgData.data[i*4+2] = c[2]; imgData.data[i*4+3] = 255;
-    }
+    if (out[i] === 255) { imgData.data[i * 4 + 3] = 0; continue; }
+    const c = palRgb[out[i]] || [0, 0, 0];
+    imgData.data[i * 4] = c[0];
+    imgData.data[i * 4 + 1] = c[1];
+    imgData.data[i * 4 + 2] = c[2];
+    imgData.data[i * 4 + 3] = 255;
   }
   pctx.putImageData(imgData, 0, 0);
 
@@ -1651,7 +2377,7 @@ function process() {
   drawGrid(tw, th, bx, by);
   drawVoxelGrid(tw, th, bx, by);
   drawOriginalOverlay();
-  result = {w: tw, h: th, bx, by, data: out};
+  result = { w: tw, h: th, bx, by, data: out };
   sizePreview();
   showStats(tw, th, bx, by, out);
 }
@@ -1702,6 +2428,7 @@ function drawVoxelGrid(tw, th, bx, by) {
 }
 
 function drawOriginalOverlay() {
+  if (usingText) return;   // the rasterised text is already the output
   const ov = $("originalOverlay");
   const tw = ov.width, th = ov.height;
   const octx = ov.getContext("2d");
@@ -1714,8 +2441,7 @@ function drawOriginalOverlay() {
   const sAr = sww / shh, tAr = tw / th;
   const fit = $("fitMode").value;
   octx.globalAlpha = opacity;
-  octx.imageSmoothingEnabled = $("aliasSlider").value > 0;
-  octx.imageSmoothingQuality = "high";
+  octx.imageSmoothingEnabled = false;   // pixel-exact reference of what was sampled
 
   if (fit === "stretch") {
     octx.drawImage(srcCanvas, sxr, syr, sww, shh, 0, 0, tw, th);
@@ -1738,17 +2464,40 @@ $("ditherStrength").addEventListener("input", () => {
   $("ditherStrengthVal").textContent = `${$("ditherStrength").value}%`;
   process();
 });
-$("aliasSlider").addEventListener("input", () => {
-  $("aliasVal").textContent = `${$("aliasSlider").value}%`;
+$("alphaThresh").addEventListener("input", () => {
+  $("alphaThreshVal").textContent = `${$("alphaThresh").value}%`;
   process();
 });
+$("bgTol").addEventListener("input", () => process());
+$("sampleMode").addEventListener("change", () => process());
+$("autoTrim").addEventListener("change", () => process());
+["textInput", "textColor", "textWeight", "textAlign", "textOutline", "textOutlineColor", "fontSelect", "customFont"]
+  .forEach(id => {
+    const el = $(id); if (!el) return;
+    const h = () => { renderSource(); ensureTextMaterials(); process(); };
+    el.addEventListener("input", h);
+    if (el.tagName === "SELECT" || el.type === "color") el.addEventListener("change", h);
+  });
+$("survivalOnly").addEventListener("change", () => {
+  if ($("survivalOnly").checked) {
+    const before = activePalette.length;
+    activePalette = activePalette.filter(b => b.category !== CREATIVE_CAT);
+    const lost = before - activePalette.length;
+    if (lost) showToast(`Removed ${lost} creative-only block${lost > 1 ? "s" : ""}`, true);
+  }
+  currentTab = "all";
+  renderTabs(); renderPaletteGrid(); renderPaletteBar(); updateDrawerCount();
+  refreshSuggestions(); process();
+});
+$("nativeScale").addEventListener("change", () => { refreshSuggestions(); process(); });
 
 function showStats(w, h, bx, by, data) {
   const cards = [];
   const lines = [`Export: ${w}×${h} px = ${bx}×${by} blocks (16×16 voxels each)`,
                  `Crop: x=${crop.x} y=${crop.y} w=${crop.w} h=${crop.h} (source px)`,
                  `Dither: ${$("dither").value} at ${$("ditherStrength").value}%`,
-                 `Smoothing: ${$("aliasSlider").value}%`];
+                 `Sampling: ${$("sampleMode").value} · edge cut-off ${$("alphaThresh").value}%`,
+                 `Backdrop: ${$("bgMode").value}${$("autoTrim").checked ? " · auto-trim on" : ""}`];
   for (let byy = 0; byy < by; byy++) {
     for (let bxx = 0; bxx < bx; bxx++) {
       const counts = {};
@@ -1833,13 +2582,23 @@ $("exportPng").onclick = () => {
 $("exportJson").onclick = () => {
   if (!result) return;
   const json = {
-    version: "2.2.0",
+    version: "2.4.0",
     grid: {w: result.w, h: result.h, voxel: VOX, blocksX: result.bx, blocksY: result.by},
     crop: {...crop},
     dither: $("dither").value,
     ditherStrengthPct: +$("ditherStrength").value,
-    smoothingPct: +$("aliasSlider").value,
-    palette: activePalette.map(p => ({name: p.name, color: p.color, code: p.code})),
+    sampleMode: $("sampleMode").value,
+    edgeCutoffPct: +$("alphaThresh").value,
+    backdrop: $("bgMode").value,
+    autoTrim: $("autoTrim").checked,
+    source: usingText ? "text" : "image",
+    text: usingText ? {
+      value: $("textInput").value, font: activeFontFamily(), weight: $("textWeight").value,
+      align: $("textAlign").value, color: $("textColor").value,
+      outline: $("textOutline").value, outlineColor: $("textOutlineColor").value
+    } : null,
+    survivalOnly: $("survivalOnly").checked,
+    palette: activePalette.map(p => ({name: p.name, color: p.color, code: p.code, category: p.category})),
     blockStats: result.stats,
     pixels: Array.from(result.data)
   };
@@ -1861,9 +2620,12 @@ function resetAllState() {
   $("textInput").value = "VS";
   $("blocksX").value = 2; $("blocksY").value = 1;
   $("fitMode").value = "cover"; $("bgMode").value = "transparent";
-  $("dither").value = "bayer"; $("colorspace").value = "rgb";
-  $("ditherStrength").value = 35; $("ditherStrengthVal").textContent = "35%";
-  $("aliasSlider").value = 50; $("aliasVal").textContent = "50%";
+  $("dither").value = "none"; $("colorspace").value = "rgb";
+  $("ditherStrength").value = 25; $("ditherStrengthVal").textContent = "25%";
+  $("alphaThresh").value = 40; $("alphaThreshVal").textContent = "40%";
+  $("bgTol").value = 0; $("sampleMode").value = "median";
+  $("bgMode").value = "remove"; $("autoTrim").checked = true;
+  $("nativeScale").value = "auto"; $("detectedScale").textContent = "—";
   $("showGrid").checked = true; $("showVoxelGrid").checked = false;
   $("overlayOpacity").value = 0;
   img = null; result = null;
@@ -1905,7 +2667,20 @@ $("gridPresets").querySelectorAll("button").forEach(btn => {
 function onGridChange() {
   $("ratioLabel").textContent = `${+$("blocksX").value || 1}:${+$("blocksY").value || 1}`;
   if (hasSource() && ratioLocked()) cropToRatio();
-  else { updateCropUI(); process(); }
+  else { updateCropUI(); }
+  refreshSuggestions();
+  process();
+}
+
+/* Suggestions are derived from the current crop + grid + sampling, so they are
+   recomputed on every relevant change instead of once per upload. */
+function refreshSuggestions() {
+  if (!hasSource() || !gamePalette.length) return;
+  const fresh = generateSuggestedPalette();
+  if (!fresh.length) return;
+  suggestedPalette = fresh;
+  renderSuggestedPalette();
+  renderPaletteGrid();
 }
 $("blocksX").addEventListener("input", onGridChange);
 $("blocksY").addEventListener("input", onGridChange);
