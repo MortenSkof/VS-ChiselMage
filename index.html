@@ -219,6 +219,15 @@
   .preview-controls { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
   .preview-controls .sliderbox { flex: 1; min-width: 220px; display: flex; align-items: center; gap: 10px; }
   .preview-controls .sliderbox span { font-size: .8rem; color: var(--muted); white-space: nowrap; }
+  .preview-legend {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    margin-top: 8px; color: var(--dim); font-size: .7rem;
+  }
+  .preview-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .preview-legend i { width: 13px; height: 13px; display: inline-block; border-radius: 3px; }
+  .legend-block { border: 2px solid #78aaff; }
+  .legend-voxel { border: 1px solid #111927; background: #242a36; }
+  .preview-legend .legend-note { flex-basis: 100%; color: var(--muted); }
 
   .grid-presets { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
   .grid-presets button { padding: 4px 9px; font-size: .74rem; border-radius: 7px; background: var(--card2); border: 1px solid var(--border2); color: var(--muted); font-weight: 500; }
@@ -339,8 +348,8 @@
 <body>
 
 <header class="app-header">
-  <h1>⛏ VS ChiselMage <span class="ver">v2.1</span></h1>
-  <div class="sub">Image / Text → <b>ChiselGraph</b> overlay · 1 block = <b>16×16 voxels</b> · pixel-perfect cropping</div>
+  <h1>⛏ VS ChiselMage <span class="ver">v2.2</span></h1>
+  <div class="sub">Image / Text → <b>ChiselGraph</b> build guide · local processing · 1 block = <b>16×16 voxels</b></div>
 </header>
 
 <nav class="wiz-rail" id="wizRail" aria-label="Wizard steps"></nav>
@@ -502,10 +511,10 @@
     <div class="row" style="margin-top:2px">
       <div class="grow"><label class="fl">Dithering</label>
         <select id="dither">
-          <option value="none">None (hard edges)</option>
-          <option value="bayer" selected>Bayer 4×4 (ordered)</option>
-          <option value="floyd">Floyd–Steinberg</option>
-          <option value="atkinson">Atkinson</option>
+          <option value="none">None — preserve broad color areas</option>
+          <option value="bayer" selected>Bayer 4×4 — clean ordered texture</option>
+          <option value="floyd">Floyd–Steinberg — smooth detail</option>
+          <option value="atkinson">Atkinson — lighter detail</option>
         </select>
       </div>
       <div class="grow"><label class="fl">Color distance</label>
@@ -515,6 +524,13 @@
         </select>
       </div>
     </div>
+
+    <div class="sliderline" id="ditherStrengthLine">
+      <span class="lab">Dither strength</span>
+      <input type="range" id="ditherStrength" min="0" max="100" value="35">
+      <span class="val" id="ditherStrengthVal">35%</span>
+    </div>
+    <div class="hint">Lower strength keeps large color areas cleaner. At 0%, every mode behaves like direct palette matching.</div>
 
     <div class="sliderline">
       <span class="lab">Smoothing (anti-alias)</span>
@@ -602,7 +618,12 @@
         <span>Original <b id="overlayOpacityVal">0%</b></span>
       </div>
       <label class="switch"><input type="checkbox" id="showGrid" checked onchange="process()"> Block grid</label>
-      <label class="switch"><input type="checkbox" id="showVoxelGrid" onchange="process()"> Voxel grid</label>
+      <label class="switch"><input type="checkbox" id="showVoxelGrid" onchange="process()"> Voxel cells</label>
+    </div>
+    <div class="preview-legend" aria-label="Preview legend">
+      <span><i class="legend-block"></i> block boundary</span>
+      <span><i class="legend-voxel"></i> voxel cell</span>
+      <span class="legend-note">Guides and original overlay are preview-only; the downloaded PNG stays clean.</span>
     </div>
 
     <div class="stats-cards-wrap">
@@ -653,6 +674,7 @@ let activePalette = [];
 let suggestedPalette = [];
 let currentTab = "all";
 let drawerOpen = false;
+let paletteReady = null;
 
 /* =========================================================
    WIZARD NAVIGATION
@@ -1105,25 +1127,35 @@ function renderSource() {
 /* ---------- image loading (file / drop / paste) ---------- */
 function loadFromImage(im) {
   img = im;
+  // A new file is a new composition, even when it has the same dimensions as
+  // the previous one. Keeping the old crop here makes different images look
+  // deceptively identical when the prior crop was narrow or off-centre.
+  crop = {x: 0, y: 0, w: im.naturalWidth, h: im.naturalHeight};
+  lastSrcW = im.naturalWidth;
+  lastSrcH = im.naturalHeight;
   showTab("image");
   renderSource();
 
-  // suggested palette from the full image
-  const tempCanvas = document.createElement("canvas");
-  tempCanvas.width = im.naturalWidth; tempCanvas.height = im.naturalHeight;
-  tempCanvas.getContext("2d").drawImage(im, 0, 0);
-  suggestedPalette = generateSuggestedPalette(tempCanvas);
-  activePalette = [];
-  for (const s of suggestedPalette) {
-    if (activePalette.length >= MAX_MATERIALS) break;
-    activePalette.push({...s, custom: false, matchScore: undefined});
-  }
-  renderPaletteBar();
-  renderSuggestedPalette();
-  renderPaletteGrid();
-  process();
+  const applySuggestions = () => {
+    // Palette loading is asynchronous; do not analyse against an empty palette
+    // if the user selects an image before block-palette.json has arrived.
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = im.naturalWidth; tempCanvas.height = im.naturalHeight;
+    tempCanvas.getContext("2d").drawImage(im, 0, 0);
+    suggestedPalette = generateSuggestedPalette(tempCanvas);
+    activePalette = suggestedPalette.slice(0, MAX_MATERIALS)
+      .map(s => ({...s, custom: false, matchScore: undefined}));
+    renderPaletteBar();
+    renderSuggestedPalette();
+    renderPaletteGrid();
+    process();
+  };
+
+  if (gamePalette.length) applySuggestions();
+  else if (paletteReady) paletteReady.then(applySuggestions);
+  else applySuggestions();
   goStep(2); // advance the wizard to the crop step
-  showToast(`Loaded ${im.naturalWidth}×${im.naturalHeight}px · ${activePalette.length} suggested materials`);
+  showToast(`Loaded ${im.naturalWidth}×${im.naturalHeight}px`);
 }
 
 $("fileInput").onchange = e => {
@@ -1361,11 +1393,20 @@ function generateSuggestedPalette(sourceCanvas) {
 
 function kmeans(points, k, maxIter = 10) {
   if (points.length <= k) return points;
-  const centroids = [];
-  const used = new Set();
+  // Deterministic farthest-point seeding. Random seeds made the same image
+  // produce a different active palette from one load to the next.
+  const centroids = [[...points[0]]];
   while (centroids.length < k) {
-    const idx = Math.floor(Math.random() * points.length);
-    if (!used.has(idx)) { used.add(idx); centroids.push([...points[idx]]); }
+    let chosen = points[0], farthest = -1;
+    for (const p of points) {
+      let nearestDist = Infinity;
+      for (const c of centroids) {
+        const dist = (p[0]-c[0])**2 + (p[1]-c[1])**2 + (p[2]-c[2])**2;
+        if (dist < nearestDist) nearestDist = dist;
+      }
+      if (nearestDist > farthest) { farthest = nearestDist; chosen = p; }
+    }
+    centroids.push([...chosen]);
   }
   for (let iter = 0; iter < maxIter; iter++) {
     const clusters = Array.from({length: k}, () => []);
@@ -1541,6 +1582,7 @@ function process() {
   const src = tctx.getImageData(0, 0, tw, th).data;
   const mode = $("dither").value;
   const useLab = $("colorspace").value === "lab";
+  const ditherStrength = Math.max(0, Math.min(1, (+$("ditherStrength").value || 0) / 100));
   pal = palRgb.map(p => p.slice());
   const out = new Uint8Array(tw * th);
   const buf = new Float32Array(tw * th * 3);
@@ -1551,20 +1593,30 @@ function process() {
   const clampv = v => v < 0 ? 0 : (v > 255 ? 255 : v);
   const push = (x, y, er, eg, eb, f) => {
     if (x < 0 || x >= tw || y < 0 || y >= th) return;
+    // Transparent pixels are not voxels. Do not let their black RGB backing
+    // colour bleed into neighbouring opaque pixels during error diffusion.
+    if (src[(y * tw + x) * 4 + 3] < 128) return;
     const j = (y * tw + x) * 3;
-    buf[j] += er * f; buf[j+1] += eg * f; buf[j+2] += eb * f;
+    buf[j] += er * f * ditherStrength;
+    buf[j+1] += eg * f * ditherStrength;
+    buf[j+2] += eb * f * ditherStrength;
   };
 
   for (let y = 0; y < th; y++) {
     for (let x = 0; x < tw; x++) {
-      const i = (y * tw + x) * 3;
-      let r = buf[i], g = buf[i+1], b = buf[i+2];
-      if (mode === "bayer") {
-        const t = (BAYER4[(y % 4) * 4 + (x % 4)] + 0.5) / 16 * 255 - 127.5;
+      const pixel = y * tw + x;
+      const i = pixel * 3;
+      if (src[pixel * 4 + 3] < 128) { out[pixel] = 255; continue; }
+      let r = clampv(buf[i]), g = clampv(buf[i+1]), b = clampv(buf[i+2]);
+      if (mode === "bayer" && ditherStrength > 0) {
+        // The old implementation added almost ±120 to every channel. That
+        // overwhelms the source image and makes the result look grey/noisy.
+        const amplitude = 96 * ditherStrength;
+        const t = ((BAYER4[(y % 4) * 4 + (x % 4)] + 0.5) / 16 - 0.5) * amplitude;
         r = clampv(r + t); g = clampv(g + t); b = clampv(b + t);
       }
       const qi = nearest(r, g, b, useLab);
-      out[y * tw + x] = qi;
+      out[pixel] = qi;
       const q = pal[qi];
       if (mode === "floyd") {
         const er = r - q[0], eg = g - q[1], eb = b - q[2];
@@ -1626,8 +1678,8 @@ function drawGrid(tw, th, bx, by) {
   const g = go.getContext("2d");
   g.clearRect(0, 0, tw, th);
   if (!$("showGrid").checked) return;
-  g.strokeStyle = "rgba(255,80,80,0.65)";
-  g.lineWidth = 0.5;
+  g.strokeStyle = "rgba(120,170,255,0.9)";
+  g.lineWidth = 0.8;
   g.beginPath();
   for (let x = 0; x <= bx; x++) { g.moveTo(x*VOX + .5, 0); g.lineTo(x*VOX + .5, th); }
   for (let y = 0; y <= by; y++) { g.moveTo(0, y*VOX + .5); g.lineTo(tw, y*VOX + .5); }
@@ -1639,8 +1691,10 @@ function drawVoxelGrid(tw, th, bx, by) {
   const g = go.getContext("2d");
   g.clearRect(0, 0, tw, th);
   if (!$("showVoxelGrid").checked) return;
-  g.strokeStyle = "rgba(255,255,255,0.18)";
-  g.lineWidth = 0.25;
+  // Dark hairlines preserve the sampled block colour better than white lines,
+  // which made the whole preview appear grey at high display scale.
+  g.strokeStyle = "rgba(8,12,20,0.48)";
+  g.lineWidth = 0.45;
   g.beginPath();
   for (let x = 0; x <= tw; x++) { g.moveTo(x + .5, 0); g.lineTo(x + .5, th); }
   for (let y = 0; y <= th; y++) { g.moveTo(0, y + .5); g.lineTo(tw, y + .5); }
@@ -1655,17 +1709,35 @@ function drawOriginalOverlay() {
   const opacity = +$("overlayOpacity").value / 100;
   $("overlayOpacityVal").textContent = `${$("overlayOpacity").value}%`;
   if (opacity === 0 || !hasSource()) return;
+
+  const sxr = crop.x, syr = crop.y, sww = crop.w, shh = crop.h;
+  const sAr = sww / shh, tAr = tw / th;
+  const fit = $("fitMode").value;
   octx.globalAlpha = opacity;
-  octx.imageSmoothingEnabled = false;
-  const sAr = crop.w / crop.h, tAr = tw / th;
-  let dw, dh, dx, dy;
-  if (sAr > tAr) { dw = tw; dh = tw / sAr; } else { dh = th; dw = th * sAr; }
-  dx = (tw - dw) / 2; dy = (th - dh) / 2;
-  octx.drawImage(srcCanvas, crop.x, crop.y, crop.w, crop.h, dx, dy, dw, dh);
+  octx.imageSmoothingEnabled = $("aliasSlider").value > 0;
+  octx.imageSmoothingQuality = "high";
+
+  if (fit === "stretch") {
+    octx.drawImage(srcCanvas, sxr, syr, sww, shh, 0, 0, tw, th);
+  } else if (fit === "contain") {
+    let dw, dh;
+    if (sAr > tAr) { dw = tw; dh = tw / sAr; }
+    else { dh = th; dw = th * sAr; }
+    octx.drawImage(srcCanvas, sxr, syr, sww, shh, (tw-dw)/2, (th-dh)/2, dw, dh);
+  } else {
+    let csx = sxr, csy = syr, cw = sww, ch = shh;
+    if (sAr > tAr) { cw = shh * tAr; csx = sxr + (sww - cw) / 2; }
+    else { ch = sww / tAr; csy = syr + (shh - ch) / 2; }
+    octx.drawImage(srcCanvas, csx, csy, cw, ch, 0, 0, tw, th);
+  }
   octx.globalAlpha = 1;
 }
 
 $("overlayOpacity").oninput = drawOriginalOverlay;
+$("ditherStrength").addEventListener("input", () => {
+  $("ditherStrengthVal").textContent = `${$("ditherStrength").value}%`;
+  process();
+});
 $("aliasSlider").addEventListener("input", () => {
   $("aliasVal").textContent = `${$("aliasSlider").value}%`;
   process();
@@ -1675,6 +1747,7 @@ function showStats(w, h, bx, by, data) {
   const cards = [];
   const lines = [`Export: ${w}×${h} px = ${bx}×${by} blocks (16×16 voxels each)`,
                  `Crop: x=${crop.x} y=${crop.y} w=${crop.w} h=${crop.h} (source px)`,
+                 `Dither: ${$("dither").value} at ${$("ditherStrength").value}%`,
                  `Smoothing: ${$("aliasSlider").value}%`];
   for (let byy = 0; byy < by; byy++) {
     for (let bxx = 0; bxx < bx; bxx++) {
@@ -1712,7 +1785,7 @@ function showStats(w, h, bx, by, data) {
     }
   }
   $("stats").textContent = lines.join("\n");
-  if (result) result.stats = lines.slice(3);
+  if (result) result.stats = lines.slice(4);
 
   // compact, collapsed summary for the stats drawer
   const usedMats = new Set();
@@ -1760,9 +1833,11 @@ $("exportPng").onclick = () => {
 $("exportJson").onclick = () => {
   if (!result) return;
   const json = {
-    version: "2.1.0",
+    version: "2.2.0",
     grid: {w: result.w, h: result.h, voxel: VOX, blocksX: result.bx, blocksY: result.by},
     crop: {...crop},
+    dither: $("dither").value,
+    ditherStrengthPct: +$("ditherStrength").value,
     smoothingPct: +$("aliasSlider").value,
     palette: activePalette.map(p => ({name: p.name, color: p.color, code: p.code})),
     blockStats: result.stats,
@@ -1787,6 +1862,7 @@ function resetAllState() {
   $("blocksX").value = 2; $("blocksY").value = 1;
   $("fitMode").value = "cover"; $("bgMode").value = "transparent";
   $("dither").value = "bayer"; $("colorspace").value = "rgb";
+  $("ditherStrength").value = 35; $("ditherStrengthVal").textContent = "35%";
   $("aliasSlider").value = 50; $("aliasVal").textContent = "50%";
   $("showGrid").checked = true; $("showVoxelGrid").checked = false;
   $("overlayOpacity").value = 0;
@@ -1858,7 +1934,7 @@ function showToast(msg, isError = false) {
 /* ---------- init ---------- */
 renderRail();
 goStep(1);
-loadGamePalette().then(() => {
+paletteReady = loadGamePalette().then(() => {
   renderSource();
   process();
 });
